@@ -1,79 +1,23 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { pb } from "$lib/pb";
+  import { enhance } from "$app/forms";
 
-  type CourseRecord = {
-    id: string;
-    name: string;
-    baseHoleDistances: number[];
+  export let data: {
+    courses: { id: string; name: string }[];
+    tournaments: {
+      id: string;
+      name: string;
+      date: string;
+      course: string;
+      expand?: { course?: { name: string } };
+    }[];
   };
 
-  type TournamentRecord = {
-    id: string;
-    name: string;
-    date: string; // PB returns ISO date strings
-    course: string; // relation id
-    expand?: {
-      course?: CourseRecord;
-    };
-  };
-
-  let courses: CourseRecord[] = [];
-  let tournaments: TournamentRecord[] = [];
-
-  let selectedCourseId = "";
+  let selectedCourseId = data.courses?.[0]?.id ?? "";
   let tournamentName = "FLI Championship";
   let tournamentDate = "2026-02-15";
 
   let status = "";
   let error = "";
-
-  async function load() {
-    error = "";
-    status = "Loading…";
-
-    try {
-      courses = await pb.collection("courses").getFullList<CourseRecord>({
-        sort: "name"
-      });
-
-      if (!selectedCourseId && courses.length) selectedCourseId = courses[0].id;
-
-      tournaments = await pb.collection("tournaments").getFullList<TournamentRecord>({
-        sort: "-date",
-        expand: "course"
-      });
-
-      status = "Loaded ✅";
-    } catch (e) {
-      console.error(e);
-      error = "Failed to load data (check PocketBase URL + rules).";
-      status = "";
-    }
-  }
-
-  async function createTournament() {
-    error = "";
-    status = "Creating tournament…";
-
-    try {
-      const created = await pb.collection("tournaments").create<TournamentRecord>({
-        name: tournamentName,
-        date: tournamentDate,
-        course: selectedCourseId
-      });
-
-      status = `Created ✅ (${created.id})`;
-      await load();
-    } catch (e) {
-      console.error(e);
-      error =
-        "Create failed (likely rules/auth). If you see 403/401 in console, we need to change PocketBase rules or add auth.";
-      status = "";
-    }
-  }
-
-  onMount(load);
 </script>
 
 <div class="p-6 space-y-6 max-w-3xl">
@@ -87,53 +31,74 @@
   {/if}
 
   <div class="rounded-lg border p-4 space-y-3">
-    <div class="grid gap-3 sm:grid-cols-3">
-      <div class="space-y-1">
-        <label class="text-xs text-muted-foreground">Tournament name</label>
-        <input
-          class="w-full rounded-md border px-3 py-2 text-sm"
-          bind:value={tournamentName}
-        />
+    <form
+      method="POST"
+      action="?/createTournament"
+      use:enhance={({ result }) => {
+        result
+          .then(async (r) => {
+            if (r.type === "success") {
+              status = `Created ✅ (${r.data?.createdId ?? ""})`;
+              error = "";
+              // simplest refresh: full reload to re-run server load
+              window.location.reload();
+            } else {
+              status = "";
+              error = (r.data as any)?.error ?? "Create failed.";
+            }
+          })
+          .catch(() => {
+            status = "";
+            error = "Create failed.";
+          });
+      }}
+    >
+      <div class="grid gap-3 sm:grid-cols-3">
+        <div class="space-y-1">
+          <label class="text-xs text-muted-foreground" for="tname">Tournament name</label>
+          <input
+            id="tname"
+            name="name"
+            class="w-full rounded-md border px-3 py-2 text-sm"
+            bind:value={tournamentName}
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs text-muted-foreground" for="tdate">Date</label>
+          <input
+            id="tdate"
+            name="date"
+            type="date"
+            class="w-full rounded-md border px-3 py-2 text-sm"
+            bind:value={tournamentDate}
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs text-muted-foreground" for="tcourse">Course</label>
+          <select
+            id="tcourse"
+            name="course"
+            class="w-full rounded-md border px-3 py-2 text-sm"
+            bind:value={selectedCourseId}
+          >
+            {#each data.courses as c}
+              <option value={c.id}>{c.name}</option>
+            {/each}
+          </select>
+        </div>
       </div>
 
-      <div class="space-y-1">
-        <label class="text-xs text-muted-foreground">Date</label>
-        <input
-          type="date"
-          class="w-full rounded-md border px-3 py-2 text-sm"
-          bind:value={tournamentDate}
-        />
-      </div>
-
-      <div class="space-y-1">
-        <label class="text-xs text-muted-foreground">Course</label>
-        <select
-          class="w-full rounded-md border px-3 py-2 text-sm"
-          bind:value={selectedCourseId}
+      <div class="flex gap-2 mt-3">
+        <button
+          class="rounded-md bg-blue-600 text-white px-3 py-2 text-sm font-medium hover:bg-blue-700"
+          disabled={!selectedCourseId}
         >
-          {#each courses as c}
-            <option value={c.id}>{c.name}</option>
-          {/each}
-        </select>
+          Create tournament
+        </button>
       </div>
-    </div>
-
-    <div class="flex gap-2">
-      <button
-        class="rounded-md bg-blue-600 text-white px-3 py-2 text-sm font-medium hover:bg-blue-700"
-        on:click={createTournament}
-        disabled={!selectedCourseId}
-      >
-        Create tournament
-      </button>
-
-      <button
-        class="rounded-md border px-3 py-2 text-sm hover:bg-muted/50"
-        on:click={load}
-      >
-        Refresh
-      </button>
-    </div>
+    </form>
   </div>
 
   <div class="rounded-lg border overflow-hidden">
@@ -146,14 +111,14 @@
         </tr>
       </thead>
       <tbody>
-        {#if tournaments.length === 0}
+        {#if data.tournaments.length === 0}
           <tr>
             <td class="px-4 py-3 text-muted-foreground" colspan="3">
               No tournaments yet.
             </td>
           </tr>
         {:else}
-          {#each tournaments as t}
+          {#each data.tournaments as t}
             <tr class="border-b last:border-0 hover:bg-muted/50">
               <td class="px-4 py-3">{t.name}</td>
               <td class="px-4 py-3">{new Date(t.date).toDateString()}</td>
