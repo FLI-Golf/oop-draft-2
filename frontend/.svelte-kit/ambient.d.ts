@@ -86,7 +86,6 @@ declare module '$env/static/private' {
 	export const rvm_bin_path: string;
 	export const SDKMAN_CANDIDATES_API: string;
 	export const _: string;
-	export const npm_config_prefix: string;
 	export const CLOUDENV_ENVIRONMENT_ID: string;
 	export const RUBY_VERSION: string;
 	export const PROMPT_DIRTRIM: string;
@@ -100,8 +99,8 @@ declare module '$env/static/private' {
 	export const PATH: string;
 	export const JAVA_ROOT: string;
 	export const SDKMAN_CANDIDATES_DIR: string;
-	export const NODE: string;
 	export const npm_package_name: string;
+	export const NODE: string;
 	export const SDKMAN_BROKER_API: string;
 	export const NPM_GLOBAL: string;
 	export const HUGO_DIR: string;
@@ -119,8 +118,8 @@ declare module '$env/static/private' {
 	export const npm_lifecycle_script: string;
 	export const SHELL: string;
 	export const GOPATH: string;
-	export const npm_config_verify_deps_before_run: string;
 	export const npm_lifecycle_event: string;
+	export const npm_config_verify_deps_before_run: string;
 	export const NODE_PATH: string;
 	export const rvm_prefix: string;
 	export const GEM_HOME: string;
@@ -133,7 +132,6 @@ declare module '$env/static/private' {
 	export const DEBIAN_FLAVOR: string;
 	export const VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
 	export const npm_config_globalconfig: string;
-	export const npm_config_dir: string;
 	export const JAVA_HOME: string;
 	export const NVS_USE_XZ: string;
 	export const PWD: string;
@@ -142,9 +140,9 @@ declare module '$env/static/private' {
 	export const npm_execpath: string;
 	export const GITHUB_SERVER_URL: string;
 	export const NVM_CD_FLAGS: string;
-	export const PNPM_SCRIPT_SRC_DIR: string;
 	export const npm_config__jsr_registry: string;
 	export const npm_command: string;
+	export const PNPM_SCRIPT_SRC_DIR: string;
 	export const CODESPACE_NAME: string;
 	export const PYTHON_ROOT: string;
 	export const NVS_OS: string;
@@ -246,7 +244,6 @@ declare module '$env/dynamic/private' {
 		rvm_bin_path: string;
 		SDKMAN_CANDIDATES_API: string;
 		_: string;
-		npm_config_prefix: string;
 		CLOUDENV_ENVIRONMENT_ID: string;
 		RUBY_VERSION: string;
 		PROMPT_DIRTRIM: string;
@@ -260,8 +257,8 @@ declare module '$env/dynamic/private' {
 		PATH: string;
 		JAVA_ROOT: string;
 		SDKMAN_CANDIDATES_DIR: string;
-		NODE: string;
 		npm_package_name: string;
+		NODE: string;
 		SDKMAN_BROKER_API: string;
 		NPM_GLOBAL: string;
 		HUGO_DIR: string;
@@ -279,8 +276,8 @@ declare module '$env/dynamic/private' {
 		npm_lifecycle_script: string;
 		SHELL: string;
 		GOPATH: string;
-		npm_config_verify_deps_before_run: string;
 		npm_lifecycle_event: string;
+		npm_config_verify_deps_before_run: string;
 		NODE_PATH: string;
 		rvm_prefix: string;
 		GEM_HOME: string;
@@ -293,7 +290,6 @@ declare module '$env/dynamic/private' {
 		DEBIAN_FLAVOR: string;
 		VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
 		npm_config_globalconfig: string;
-		npm_config_dir: string;
 		JAVA_HOME: string;
 		NVS_USE_XZ: string;
 		PWD: string;
@@ -302,9 +298,9 @@ declare module '$env/dynamic/private' {
 		npm_execpath: string;
 		GITHUB_SERVER_URL: string;
 		NVM_CD_FLAGS: string;
-		PNPM_SCRIPT_SRC_DIR: string;
 		npm_config__jsr_registry: string;
 		npm_command: string;
+		PNPM_SCRIPT_SRC_DIR: string;
 		CODESPACE_NAME: string;
 		PYTHON_ROOT: string;
 		NVS_OS: string;
