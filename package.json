@@ -1,0 +1,11 @@
+{
+  "name": "oop-draft-2",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -C frontend dev --host 0.0.0.0 --port 5173",
+    "pb:dev": "bash backend/pb.sh",
+    "pb:migrate": "bash backend/pb-migrate.sh",
+    "build": "pnpm -C frontend build",
+    "check": "pnpm -C frontend check"
+  }
+}
