@@ -6,7 +6,10 @@ export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 	server: {
 		host: '0.0.0.0',
-		allowedHosts: ['.gitpod.dev', '.gitpod.io'],
+		allowedHosts: true,
+		fs: {
+			allow: ['..']
+		},
 		proxy: {
 			'/pb': {
 				target: 'http://localhost:8090',
