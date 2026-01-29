@@ -16,7 +16,8 @@
   },
   "type": "module",
   "dependencies": {
-    "@oop-draft-2/shared": "workspace:*"
+    "@oop-draft-2/shared": "workspace:*",
+    "pocketbase": "^0.26.7"
   },
   "devDependencies": {
     "@lucide/svelte": "^0.563.1",

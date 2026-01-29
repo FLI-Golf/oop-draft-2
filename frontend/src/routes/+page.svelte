@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { pb } from "$lib/pb";
+  console.log("PB baseUrl:", pb.baseUrl);
   import { Course, Tournament } from "@oop-draft-2/shared";
 
   import { Button } from "$lib/components/ui/button";

@@ -13,6 +13,9 @@ importers:
       '@oop-draft-2/shared':
         specifier: workspace:*
         version: link:../shared
+      pocketbase:
+        specifier: ^0.26.7
+        version: 0.26.7
     devDependencies:
       '@lucide/svelte':
         specifier: ^0.563.1
@@ -151,6 +154,9 @@ packages:
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
+  pocketbase@0.26.7:
+    resolution: {integrity: sha512-9pFp3+CqB73+fBaj6Y6Wid7w2CDz94SqzgBdl2RBjhY4KRDzupBkwP423kR5ZjUpOTThWWGal+W4cRB3MYeAIQ==}
+
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
@@ -288,6 +294,8 @@ snapshots:
   node-releases@2.0.27: {}
 
   picocolors@1.1.1: {}
+
+  pocketbase@0.26.7: {}
 
   postcss-value-parser@4.2.0: {}
 
