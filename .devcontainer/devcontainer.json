@@ -10,7 +10,39 @@
         "context": ".",
         "dockerfile": "Dockerfile"
     },
-	"postStartCommand": "pnpm install && cd backend/pbapp && go mod download && go run main.go serve --http=0.0.0.0:8090 & cd /workspaces/oop-draft-2 && pnpm dev"
+	"postCreateCommand": "pnpm install --force && cd backend/pbapp && go mod download",
+	"customizations": {
+		"gitpod": {
+			"ports": [
+				{
+					"port": 5173,
+					"name": "frontend",
+					"visibility": "public"
+				},
+				{
+					"port": 8090,
+					"name": "pocketbase",
+					"visibility": "public"
+				}
+			],
+			"automations": {
+				"services": {
+					"pocketbase": {
+						"name": "PocketBase",
+						"description": "PocketBase backend server",
+						"command": "cd backend/pbapp && go run main.go serve --http=0.0.0.0:8090",
+						"triggeredBy": ["postDevcontainerStart"]
+					},
+					"frontend": {
+						"name": "Frontend Dev Server",
+						"description": "SvelteKit frontend dev server",
+						"command": "pnpm dev",
+						"triggeredBy": ["postDevcontainerStart"]
+					}
+				}
+			}
+		}
+	}
 	// Features add additional features to your environment. See https://containers.dev/features
 	// Beware: features are not supported on all platforms and may have unintended side-effects.
 	// "features": {

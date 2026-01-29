@@ -1,6 +1,9 @@
 {
   "name": "oop-draft-2",
   "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
   "scripts": {
     "dev": "pnpm -C frontend dev --host 0.0.0.0 --port 5173",
     "pb:dev": "bash backend/pb.sh",

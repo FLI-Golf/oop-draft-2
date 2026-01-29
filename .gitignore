@@ -1,10 +1,39 @@
+# Dependencies
+node_modules/
+.pnpm-store/
 
-# Local env
+# Build outputs
+dist/
+build/
+.svelte-kit/
+
+# Environment files
+.env
+.env.*
+!.env.example
 backend/.env
 frontend/.env
-.env
 
-# Local env
-backend/.env
-frontend/.env
-.env
+# PocketBase
+backend/pb_data/
+backend/pbapp/pb_data/
+backend/bin/
+backend/pocketbase*
+backend/*.zip
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp files
+/tmp/
+*.tmp
