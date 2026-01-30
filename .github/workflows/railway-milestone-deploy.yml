@@ -1,0 +1,37 @@
+name: Railway Intentional Milestone Deploy (Backend)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Railway environment name (e.g. production, staging)"
+        required: true
+        default: "production"
+      confirm:
+        description: "Type DEPLOY to confirm this milestone deployment"
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Abort if confirmation is missing
+        if: ${{ inputs.confirm != 'DEPLOY' }}
+        run: |
+          echo "❌ Deployment aborted."
+          echo "You must type DEPLOY exactly to proceed."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: curl -fsSL https://railway.app/install.sh | sh
+
+      - name: Deploy backend via Railway CLI
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway --version
+          cd backend
+          railway up --environment ${{ inputs.environment }}
