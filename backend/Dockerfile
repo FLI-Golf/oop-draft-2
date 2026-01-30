@@ -1,4 +1,3 @@
-# backend/Dockerfile
 FROM alpine:3.20
 
 ARG PB_VERSION=0.23.6
@@ -10,7 +9,6 @@ RUN apk add --no-cache ca-certificates wget unzip \
   && rm -rf /tmp/pb.zip \
   && chmod +x /pb/pocketbase
 
-# You'll mount a Railway Volume to /pb/pb_data (important)
 EXPOSE 8080
 
-CMD ["/pb/pocketbase","serve","--http=0.0.0.0:8080"]
+CMD ["/pb/pocketbase","serve","--http=0.0.0.0:8080","--dir","/pb/pb_data"]
