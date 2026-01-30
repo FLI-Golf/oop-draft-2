@@ -13,6 +13,9 @@ importers:
       '@oop-draft-2/shared':
         specifier: workspace:*
         version: link:../shared
+      lucide-svelte:
+        specifier: ^0.563.0
+        version: 0.563.0(svelte@5.48.5)
       pocketbase:
         specifier: ^0.26.7
         version: 0.26.7
@@ -887,6 +890,11 @@ packages:
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
+
+  lucide-svelte@0.563.0:
+    resolution: {integrity: sha512-pjZKw7TpQcamfQrx7YdbOHgmrcNeKiGGMD0tKZQaVktwSsbqw28CsKc2Q97ttwjytiCWkJyOa8ij2Q+Og0nPfQ==}
+    peerDependencies:
+      svelte: ^3 || ^4 || ^5.0.0-next.42
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
@@ -1846,6 +1854,10 @@ snapshots:
   loupe@3.2.1: {}
 
   lru-cache@10.4.3: {}
+
+  lucide-svelte@0.563.0(svelte@5.48.5):
+    dependencies:
+      svelte: 5.48.5
 
   magic-string@0.30.21:
     dependencies:

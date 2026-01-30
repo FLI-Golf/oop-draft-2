@@ -1,13 +1,15 @@
-<!-- frontend/src/routes/work-order/+page.svelte -->
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
-  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "$lib/components/ui/card";
+  import SectionCard from "$lib/components/work-order/SectionCard.svelte";
+  import ContactsCard from "$lib/components/work-order/ContactsCard.svelte";
   import { onMount } from "svelte";
 
   type Task = { id: string; text: string };
   type Section = { id: string; title: string; description?: string; tasks: Task[] };
 
   const STORAGE_KEY = "fli:work-order:v1";
+  const COLLAPSE_KEY = "fli:work-order:collapsed:v1";
+  const CONTACTS_ID = "contacts";
 
   const sections: Section[] = [
     {
@@ -154,38 +156,68 @@
     }
   ];
 
-  let checked: Record<string, boolean> = {};
+  // ✅ Default: contacts collapsed; first section open; rest collapsed
+  const defaultCollapsed: Record<string, boolean> = {
+    [CONTACTS_ID]: true,
+    ...Object.fromEntries(sections.map((s, i) => [s.id, i !== 0]))
+  };
 
-  function save() {
+  let checked: Record<string, boolean> = {};
+  let collapsed: Record<string, boolean> = { ...defaultCollapsed };
+
+  function saveChecked() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(checked));
-    } catch {
-      // ignore (private mode, quota, etc.)
-    }
+    } catch {}
   }
 
-  function toggle(id: string) {
+  function saveCollapsed() {
+    try {
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed));
+    } catch {}
+  }
+
+  function toggleTask(id: string) {
     checked = { ...checked, [id]: !checked[id] };
-    save();
+    saveChecked();
+  }
+
+  function toggleCard(id: string) {
+    collapsed = { ...collapsed, [id]: !collapsed[id] };
+    saveCollapsed();
   }
 
   function resetAll() {
     checked = {};
-    save();
+    saveChecked();
   }
 
-  function completionFor(section: Section) {
-    const total = section.tasks.length;
-    const done = section.tasks.reduce((acc, t) => acc + (checked[t.id] ? 1 : 0), 0);
+  function completionForTasks(tasks: Task[]) {
+    const total = tasks.length;
+    const done = tasks.reduce((acc, t) => acc + (checked[t.id] ? 1 : 0), 0);
     return { done, total };
   }
 
   onMount(() => {
+    // Restore checklist
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) checked = JSON.parse(raw);
     } catch {
       checked = {};
+    }
+
+    // Restore collapsed state; if none, keep defaults and persist them once
+    try {
+      const raw = localStorage.getItem(COLLAPSE_KEY);
+      if (raw) {
+        collapsed = JSON.parse(raw);
+      } else {
+        collapsed = { ...defaultCollapsed };
+        saveCollapsed();
+      }
+    } catch {
+      collapsed = { ...defaultCollapsed };
     }
   });
 </script>
@@ -217,55 +249,24 @@
     </div>
   </div>
 
-  <Card>
-    <CardHeader>
-      <CardTitle>Client & Contacts</CardTitle>
-      <CardDescription>Primary project contacts.</CardDescription>
-    </CardHeader>
-    <CardContent class="grid gap-4 sm:grid-cols-2 text-sm">
-      <div class="space-y-1">
-        <div><span class="font-medium">Client:</span> FLI Golf League</div>
-        <div><span class="font-medium">IT Director:</span> Dustin Dinsmore</div>
-      </div>
-      <div class="space-y-1">
-        <div class="font-medium">Primary Contacts</div>
-        <div class="text-muted-foreground">Andrew Panza (CEO / Founder) — 716-572-8319 andrew@fligolf.com</div>
-        <div class="text-muted-foreground">Dustin Dinsmore (IT Director / CTO) — 626-222-3107 dustin@fligolf.com</div>
-      </div>
-    </CardContent>
-  </Card>
+  <!-- Contacts Card -->
+  <ContactsCard
+    id={CONTACTS_ID}
+    collapsed={!!collapsed[CONTACTS_ID]}
+    onToggle={() => toggleCard(CONTACTS_ID)}
+  />
 
-  {#each sections as s}
-    {@const prog = completionFor(s)}
-    <Card>
-      <CardHeader>
-        <CardTitle class="flex items-center justify-between gap-3">
-          <span>{s.title}</span>
-          <span class="text-sm text-muted-foreground">{prog.done}/{prog.total}</span>
-        </CardTitle>
-        {#if s.description}
-          <CardDescription>{s.description}</CardDescription>
-        {/if}
-      </CardHeader>
-
-      <CardContent class="space-y-2">
-        {#each s.tasks as t}
-          <label class="flex items-start gap-3 rounded-md border p-3 hover:bg-muted/40 cursor-pointer">
-            <input
-              type="checkbox"
-              class="mt-1 h-4 w-4"
-              checked={!!checked[t.id]}
-              on:change={() => toggle(t.id)}
-            />
-          <div class="text-sm">
-            <div class="leading-snug">
-              {t.text}
-            </div>
-          </div>
-          </label>
-        {/each}
-      </CardContent>
-    </Card>
+  <!-- Sections -->
+  {#each sections as s (s.id)}
+    {@const prog = completionForTasks(s.tasks)}
+    <SectionCard
+      section={s}
+      collapsed={!!collapsed[s.id]}
+      prog={prog}
+      checked={checked}
+      onToggle={() => toggleCard(s.id)}
+      onToggleTask={toggleTask}
+    />
   {/each}
 
   <div class="text-xs text-muted-foreground">
@@ -277,11 +278,10 @@
 <style>
   /* Completed task: green background + check indicator */
   label:has(input:checked) {
-    background-color: hsl(142.1 70.6% 45.3% / 0.15); /* soft green */
+    background-color: hsl(142.1 70.6% 45.3% / 0.15);
     border-color: hsl(142.1 70.6% 45.3%);
   }
 
-  /* Add green check icon on the left */
   label:has(input:checked)::before {
     content: "✔";
     color: hsl(142.1 70.6% 45.3%);
@@ -289,21 +289,17 @@
     margin-top: 2px;
   }
 
-  /* Layout fix so the check aligns nicely */
   label {
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
   }
 
-  /* Keep text fully readable */
   label:has(input:checked) div {
     color: inherit;
   }
 
-  /* Optional: soften unchecked hover */
   label:hover {
     background-color: hsl(0 0% 0% / 0.03);
   }
 </style>
-
