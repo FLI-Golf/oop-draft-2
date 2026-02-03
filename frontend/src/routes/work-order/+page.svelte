@@ -25,16 +25,33 @@
       ]
     },
     {
-      id: "roles",
-      title: "👥 User Types & Permissions",
-      description: "All features should map to one of these four roles.",
-      tasks: [
-        { id: "r-1", text: "Anonymous: browse league info, schedule, teams/players, news/media, merch, limited fantasy previews" },
-        { id: "r-2", text: "Authenticated: fantasy participation, favorites, profile/avatar (optional), history" },
-        { id: "r-3", text: "Scorekeeper: enter/update scores, validate rounds/holes, limited admin UI" },
-        { id: "r-4", text: "Admin: full CRUD, overrides, content scheduling, user management, audits" }
-      ]
-    },
+    id: "roles",
+    title: "👥 User Roles & Capabilities (Demo)",
+    description:
+      "This demo uses a centralized policy model to illustrate role-based capabilities. Not all capabilities are fully implemented, as this app is not intended for production.",
+    tasks: [
+      {
+        id: "r-1",
+        text:
+          "Basic User: browse league info, schedules, tournaments, courses, teams/players, read-only access to public data"
+      },
+      {
+        id: "r-2",
+        text:
+          "Pro: read-only access plus limited interactions (e.g. posting comments or feedback — capability shown in policy but not fully implemented)"
+      },
+      {
+        id: "r-3",
+        text:
+          "Scorekeeper: enter and update scores, validate rounds/holes, access scorekeeping tools"
+      },
+      {
+        id: "r-4",
+        text:
+          "Admin: full CRUD access, tournament/course management, overrides, user role assignment, system configuration"
+      }
+    ]
+  },
     {
       id: "website-home",
       title: "🖥️ Website — Homepage",

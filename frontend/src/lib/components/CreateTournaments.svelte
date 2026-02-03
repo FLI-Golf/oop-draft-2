@@ -16,6 +16,60 @@
     TableRow
   } from "$lib/components/ui/table";
 
+  type SortKey = "name" | "date" | "course" | "season";
+  let sortKey: SortKey = "date";
+  let sortDir: "asc" | "desc" = "desc";
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      sortDir = sortDir === "asc" ? "desc" : "asc";
+    } else {
+      sortKey = key;
+      // sensible default: dates desc, everything else asc
+      sortDir = key === "date" ? "desc" : "asc";
+    }
+  }
+
+  function sortIndicator(key: SortKey) {
+    if (sortKey !== key) return "";
+    return sortDir === "asc" ? " ▲" : " ▼";
+  }
+
+  function compare(a: any, b: any) {
+    if (a === b) return 0;
+    if (a == null) return -1;
+    if (b == null) return 1;
+    return a < b ? -1 : 1;
+  }
+
+  $: sortedTournaments = [...(data.tournaments ?? [])].sort((a, b) => {
+    let av: any;
+    let bv: any;
+
+    switch (sortKey) {
+      case "date":
+        // ISO dates sort correctly as strings, but make it explicit:
+        av = new Date(a.date).getTime();
+        bv = new Date(b.date).getTime();
+        break;
+      case "name":
+        av = (a.name ?? "").toLowerCase();
+        bv = (b.name ?? "").toLowerCase();
+        break;
+      case "course":
+        av = (a.expand?.course?.name ?? a.course ?? "").toLowerCase();
+        bv = (b.expand?.course?.name ?? b.course ?? "").toLowerCase();
+        break;
+      case "season":
+        av = a.season ?? "";
+        bv = b.season ?? "";
+        break;
+    }
+
+    const c = compare(av, bv);
+    return sortDir === "asc" ? c : -c;
+  });
+
   export let data: {
     courses: { id: string; name: string }[];
     tournaments: {
@@ -31,7 +85,7 @@
   let selectedCourseId = data.courses?.[0]?.id ?? "";
   let tournamentName = "FLI Championship";
   let tournamentDate = "2026-02-15";
-  let season: "2026" | "2027" | "2028" | "2029" = "2026";
+  let season = "2026";
 
   const seasonOptions: SelectOption[] = [
     { value: "2026", label: "2026" },
@@ -42,6 +96,7 @@
 
   let status = "";
   let error = "";
+  
 </script>
 
 <div class="space-y-6 max-w-3xl">
@@ -68,6 +123,8 @@
             if (result.type === "success") {
               status = "Created ✅";
               error = "";
+              tournamentName = "";
+              // or keep name but bump date, your call
               await nav.invalidateAll();
               return;
             }
@@ -130,7 +187,7 @@
         </div>
 
         <div class="mt-4">
-          <Button type="submit" disabled={!selectedCourseId}>
+          <Button type="submit" disabled={!selectedCourseId || !season}>
             Create tournament
           </Button>
         </div>
@@ -144,14 +201,24 @@
     </CardHeader>
     <CardContent>
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Course</TableHead>
-            <TableHead>Season</TableHead>
-          </TableRow>
-        </TableHeader>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+
+          <TableHead>
+            <button
+              type="button"
+              class="flex items-center gap-1 hover:underline"
+              on:click={() => toggleSort("date")}
+            >
+              Date{sortIndicator("date")}
+            </button>
+          </TableHead>
+
+          <TableHead>Course</TableHead>
+          <TableHead>Season</TableHead>
+        </TableRow>
+      </TableHeader>
 
         <TableBody>
           {#if data.tournaments.length === 0}
@@ -159,7 +226,7 @@
               <TableCell colspan="4" class="text-muted-foreground">No tournaments yet.</TableCell>
             </TableRow>
           {:else}
-            {#each data.tournaments as t}
+            {#each sortedTournaments as t}
               <TableRow>
                 <TableCell>{t.name}</TableCell>
                 <TableCell>{new Date(t.date).toDateString()}</TableCell>

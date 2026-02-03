@@ -13,6 +13,7 @@ type TournamentRecord = {
   name: string;
   date: string;
   course: string;
+  season?: "2026" | "2027" | "2028" | "2029";
   expand?: {
     course?: CourseRecord;
   };
@@ -41,24 +42,32 @@ export const actions: Actions = {
     const name = String(data.get("name") ?? "").trim();
     const date = String(data.get("date") ?? "").trim();
     const course = String(data.get("course") ?? "").trim();
+    const season = String(data.get("season") ?? "").trim();
 
-    if (!name || !date || !course) {
+    const allowedSeasons = new Set(["2026", "2027", "2028", "2029"]);
+
+    if (!name || !date || !course || !season) {
       return fail(400, { error: "Missing required fields." });
+    }
+
+    if (!allowedSeasons.has(season)) {
+      return fail(400, { error: "Invalid season." });
     }
 
     try {
       const created = await pb.collection("tournaments").create<TournamentRecord>({
         name,
         date,
-        course
+        course,
+        season
       });
 
       return { success: true, createdId: created.id };
     } catch (e: any) {
-      // If rules/auth fail, PocketBase will throw with status/message
       return fail(e?.status || 500, {
         error: e?.message || "Create failed (rules/auth)."
       });
     }
   }
 };
+
