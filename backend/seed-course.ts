@@ -37,21 +37,22 @@ async function upsertCourse(courseName: string, baseHoleDistances: number[]) {
   });
 }
 
-async function upsertTournament(params: { name: string; date: string; courseId: string }) {
-  const { name, date, courseId } = params;
+  async function upsertTournament(params: { name: string; date: string; courseId: string; season?: string }) {
+    const { name, date, courseId, season } = params;
 
-  const existing = await getByUnique<any>(
-    "tournaments",
-    `name="${name}" && date="${date}" && course="${courseId}"`
-  );
-  if (existing) return existing;
+    const existing = await getByUnique<any>(
+      "tournaments",
+      `name="${name}" && date="${date}" && course="${courseId}"`
+    );
+    if (existing) return existing;
 
-  return await pb.collection("tournaments").create({
-    name,
-    date,
-    course: courseId
-  });
-}
+    return await pb.collection("tournaments").create({
+      name,
+      date,
+      course: courseId,
+      ...(season ? { season } : {})
+    });
+  }
 
 
 // ---- Main seed ----
@@ -85,4 +86,4 @@ async function main() {
 main().catch((err) => {
   console.error("❌ Seed failed:", err);
   process.exit(1);
-});
+}); 
