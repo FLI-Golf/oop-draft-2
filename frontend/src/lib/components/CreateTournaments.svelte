@@ -99,15 +99,23 @@
   
 </script>
 
-<div class="space-y-6 max-w-3xl">
+<div class="flex items-start justify-between">
   <div class="space-y-1">
     <h1 class="text-3xl font-bold">Tournaments</h1>
+
     {#if status}
       <p class="text-sm text-emerald-600">{status}</p>
     {/if}
+
     {#if error}
       <p class="text-sm text-red-600">{error}</p>
     {/if}
+  </div>
+
+  <Button variant="outline" class="-mt-1" asChild>
+    <a href="/work-order">← Return to Work Order</a>
+  </Button>
+
   </div>
 
   <Card>
@@ -239,4 +247,4 @@
       </Table>
     </CardContent>
   </Card>
-</div>
+
