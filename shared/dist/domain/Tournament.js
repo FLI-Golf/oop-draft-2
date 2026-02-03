@@ -1,7 +1,8 @@
 export class Tournament {
-    constructor(name, date, season) {
+    name;
+    date;
+    constructor(name, date) {
         this.name = name;
         this.date = date;
-        this.season = season;
     }
 }
