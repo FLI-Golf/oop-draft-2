@@ -6,7 +6,7 @@
   import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
-  import * as Select from "$lib/components/ui/select";
+  import { Select, type SelectOption } from "$lib/components/ui/select";
   import {
     Table,
     TableBody,
@@ -32,6 +32,13 @@
   let tournamentName = "FLI Championship";
   let tournamentDate = "2026-02-15";
   let season: "2026" | "2027" | "2028" | "2029" = "2026";
+
+  const seasonOptions: SelectOption[] = [
+    { value: "2026", label: "2026" },
+    { value: "2027", label: "2027" },
+    { value: "2028", label: "2028" },
+    { value: "2029", label: "2029" }
+  ];
 
   let status = "";
   let error = "";
@@ -83,18 +90,15 @@
           <div class="space-y-1">
             <label class="text-xs text-muted-foreground" for="tseason">Season</label>
 
-            <!-- shadcn select wrapper -->
-            <Select.Root name="season" bind:value={season}>
-              <Select.Trigger id="tseason">
-                <Select.Value placeholder="Select season" />
-              </Select.Trigger>
-              <Select.Content>
-                <Select.Item value="2026">2026</Select.Item>
-                <Select.Item value="2027">2027</Select.Item>
-                <Select.Item value="2028">2028</Select.Item>
-                <Select.Item value="2029">2029</Select.Item>
-              </Select.Content>
-            </Select.Root>
+            <!-- Simple Select (no shadcn compound API) -->
+            <Select
+              bind:value={season}
+              options={seasonOptions}
+              placeholder="Select season"
+            />
+
+            <!-- ensure the season value is submitted -->
+            <input type="hidden" name="season" value={season} />
           </div>
 
           <div class="space-y-1">
@@ -109,7 +113,8 @@
 
           <div class="space-y-1">
             <label class="text-xs text-muted-foreground" for="tcourse">Course</label>
-            <!-- If you don’t have shadcn Select wired well yet, keep native select -->
+
+            <!-- native select kept (works fine + submits) -->
             <select
               id="tcourse"
               name="course"
