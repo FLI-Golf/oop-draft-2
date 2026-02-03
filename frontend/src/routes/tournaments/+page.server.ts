@@ -38,6 +38,15 @@ type SeasonSettingsRecord = {
   distributed: boolean;
 };
 
+type TournamentSettingsRecord = {
+  id: string;
+  tournament: string;
+  startingHole: number;
+  intervalMinutes: number;
+  firstTeeTime: string;
+  format: string;
+};
+
 export const load: PageServerLoad = async () => {
   const pb = getServerPB();
 
@@ -189,6 +198,8 @@ export const actions: Actions = {
     const data = await request.formData();
     const season = String(data.get("season") ?? "").trim();
 
+    console.log(`[generateGroups] Starting for season: ${season}`);
+
     if (!season) {
       return fail(400, { error: "Season is required." });
     }
@@ -199,6 +210,8 @@ export const actions: Actions = {
         filter: `season="${season}"`,
         sort: "date"
       });
+
+      console.log(`[generateGroups] Found ${tournaments.length} tournaments for season ${season}`);
 
       if (tournaments.length === 0) {
         return fail(400, { error: `No tournaments found for season ${season}.` });
@@ -213,6 +226,8 @@ export const actions: Actions = {
         sort: "name"
       });
 
+      console.log(`[generateGroups] Found ${teams.length} teams`);
+
       if (teams.length < 2) {
         return fail(400, { error: "Need at least 2 teams to generate groups." });
       }
@@ -221,6 +236,8 @@ export const actions: Actions = {
       const existingGroups = await pb.collection("groups").getFullList<GroupRecord>({
         filter: tournaments.map(t => `tournament="${t.id}"`).join(" || ")
       });
+
+      console.log(`[generateGroups] Existing groups: ${existingGroups.length}`);
 
       if (existingGroups.length > 0) {
         return fail(400, { error: `Groups already exist for season ${season}. Delete existing groups first.` });
@@ -282,18 +299,60 @@ export const actions: Actions = {
         0.015  // 12th: 1.5%
       ];
 
+      // Get all tournament settings for this season's tournaments
+      const tournamentIds = tournaments.map(t => t.id);
+      console.log(`[generateGroups] Fetching tournament_settings for ${tournamentIds.length} tournaments`);
+      
+      const allTournamentSettings = await pb.collection("tournament_settings").getFullList<TournamentSettingsRecord>({
+        filter: tournamentIds.map(id => `tournament="${id}"`).join(" || ")
+      });
+      
+      console.log(`[generateGroups] Found ${allTournamentSettings.length} tournament_settings records`);
+      
+      // Create a map for quick lookup
+      const settingsMap = new Map<string, TournamentSettingsRecord>();
+      for (const ts of allTournamentSettings) {
+        settingsMap.set(ts.tournament, ts);
+        console.log(`[generateGroups] Settings for tournament ${ts.tournament}: firstTeeTime=${ts.firstTeeTime}, interval=${ts.intervalMinutes}min, startingHole=${ts.startingHole}`);
+      }
+
+      // Helper to calculate tee time for a group
+      const calculateTeeTime = (firstTeeTime: string, intervalMinutes: number, groupIndex: number): string => {
+        const [hours, minutes] = firstTeeTime.split(":").map(Number);
+        const totalMinutes = hours * 60 + minutes + (groupIndex * intervalMinutes);
+        const newHours = Math.floor(totalMinutes / 60) % 24;
+        const newMinutes = totalMinutes % 60;
+        return `${String(newHours).padStart(2, "0")}:${String(newMinutes).padStart(2, "0")}`;
+      };
+
       // Create groups for each tournament
       for (let i = 0; i < tournaments.length; i++) {
         const tournament = tournaments[i];
         const pairings = generateRoundPairings(i);
         
+        // Get tournament settings (use defaults if not found)
+        const settings = settingsMap.get(tournament.id);
+        const firstTeeTime = settings?.firstTeeTime ?? "08:00";
+        const intervalMinutes = settings?.intervalMinutes ?? 10;
+        const startingHole = settings?.startingHole ?? 1;
+        
+        console.log(`[generateGroups] Tournament ${i + 1}/${tournaments.length}: ${tournament.name} (${tournament.id})`);
+        console.log(`[generateGroups]   Settings: firstTeeTime=${firstTeeTime}, interval=${intervalMinutes}min, startingHole=${startingHole}`);
+        console.log(`[generateGroups]   Creating ${pairings.length} groups...`);
+        
         for (let g = 0; g < pairings.length; g++) {
           const [team1, team2] = pairings[g];
+          const teeTime = calculateTeeTime(firstTeeTime, intervalMinutes, g);
+          
+          console.log(`[generateGroups]   Group ${g + 1}: teeTime=${teeTime}, startingHole=${startingHole}`);
+          
           await pb.collection("groups").create({
             tournament: tournament.id,
             team1,
             team2,
-            groupNumber: g + 1
+            groupNumber: g + 1,
+            teeTime,
+            startingHole
           });
         }
 
@@ -317,11 +376,14 @@ export const actions: Actions = {
         distributed: true
       });
 
+      console.log(`[generateGroups] Complete! Generated groups for ${tournaments.length} tournaments`);
+
       return { 
         success: true, 
         message: `Generated groups and prize distributions for ${tournaments.length} tournaments in season ${season}. Total prize pool: $${(seasonSettings.prizePool / 1000000).toFixed(0)}M` 
       };
     } catch (e: any) {
+      console.error(`[generateGroups] Error:`, e);
       return fail(e?.status || 500, {
         error: e?.message || "Failed to generate groups."
       });

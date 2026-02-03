@@ -31,7 +31,8 @@
       </div>
 
       <div class="flex flex-wrap gap-3 pt-2">
-        <a href="/tournaments"><Button>Tournaments Admin</Button></a>
+        <a href="/league"><Button>League Info</Button></a>
+        <a href="/tournaments"><Button variant="outline">Tournaments Admin</Button></a>
         <a href="/work-order"><Button variant="outline">Full Work Order</Button></a>
       </div>
     </CardContent>

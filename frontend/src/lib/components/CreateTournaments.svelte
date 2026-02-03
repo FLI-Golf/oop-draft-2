@@ -145,7 +145,93 @@
 
   <Card>
     <CardHeader>
-      <CardTitle>Step 1: Create course</CardTitle>
+      <CardTitle>Step 1: Season Prize Pool</CardTitle>
+      <p class="text-sm text-muted-foreground">
+        Set the total prize pool for a season. Prize money will be distributed across all tournaments ensuring every team gets paid.
+      </p>
+    </CardHeader>
+    <CardContent class="space-y-4">
+      <form
+        method="POST"
+        action="?/setSeasonPrizePool"
+        use:enhance={() => {
+          return async ({ result }) => {
+            if (result.type === "success") {
+              status = "Prize pool saved ✅";
+              error = "";
+              await nav.invalidateAll();
+              return;
+            }
+            if (result.type === "failure") {
+              status = "";
+              error = (result.data as { error?: string })?.error ?? "Failed to set prize pool.";
+              return;
+            }
+            status = "";
+            error = result.type === "error" ? result.error?.message ?? "Unexpected error." : "";
+          };
+        }}
+      >
+        <div class="grid gap-3 sm:grid-cols-3">
+          <div class="space-y-1">
+            <label class="text-xs text-muted-foreground" for="prizePoolSeason">Season</label>
+            <select
+              id="prizePoolSeason"
+              name="season"
+              bind:value={prizePoolSeason}
+              class="w-full rounded-md border px-3 py-2 text-sm"
+              required
+            >
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+              <option value="2029">2029</option>
+            </select>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs text-muted-foreground" for="prizePoolAmount">Prize Pool</label>
+            <select
+              id="prizePoolAmount"
+              name="prizePool"
+              bind:value={prizePoolAmount}
+              class="w-full rounded-md border px-3 py-2 text-sm"
+              required
+            >
+              <option value="2000000">$2 Million</option>
+              <option value="3000000">$3 Million</option>
+              <option value="4000000">$4 Million</option>
+              <option value="5000000">$5 Million</option>
+              <option value="6000000">$6 Million</option>
+            </select>
+          </div>
+
+          <div class="flex items-end">
+            <Button type="submit">
+              Set Prize Pool
+            </Button>
+          </div>
+        </div>
+
+        {#if currentSeasonSettings}
+          <div class="mt-3 rounded-md bg-emerald-50 p-3 text-sm text-emerald-700">
+            <strong>{prizePoolSeason} Prize Pool:</strong> ${(currentSeasonSettings.prizePool / 1000000).toFixed(0)}M
+            {#if currentSeasonSettings.distributed}
+              <span class="ml-2 text-emerald-600">(Distributed)</span>
+            {:else}
+              <span class="ml-2 text-amber-600">(Not yet distributed)</span>
+            {/if}
+          </div>
+        {:else}
+          <p class="mt-3 text-xs text-muted-foreground">No prize pool set for {prizePoolSeason} yet.</p>
+        {/if}
+      </form>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>Step 2: Create course</CardTitle>
       <p class="text-sm text-muted-foreground">
         Courses define the 9-hole layout with base distances. Create a course first, then use it when creating tournaments.
       </p>
@@ -217,7 +303,7 @@
 
   <Card>
     <CardHeader>
-      <CardTitle>Step 2: Create tournament</CardTitle>
+      <CardTitle>Step 3: Create tournament</CardTitle>
       <p class="text-sm text-muted-foreground">
         Tournaments are events held on a course during a season. Select a course from the dropdown (created above).
       </p>
@@ -364,92 +450,6 @@
 
   <Card>
     <CardHeader>
-      <CardTitle>Season Prize Pool</CardTitle>
-      <p class="text-sm text-muted-foreground">
-        Set the total prize pool for a season. Prize money will be distributed across all tournaments ensuring every team gets paid.
-      </p>
-    </CardHeader>
-    <CardContent class="space-y-4">
-      <form
-        method="POST"
-        action="?/setSeasonPrizePool"
-        use:enhance={() => {
-          return async ({ result }) => {
-            if (result.type === "success") {
-              status = "Prize pool saved ✅";
-              error = "";
-              await nav.invalidateAll();
-              return;
-            }
-            if (result.type === "failure") {
-              status = "";
-              error = (result.data as { error?: string })?.error ?? "Failed to set prize pool.";
-              return;
-            }
-            status = "";
-            error = result.type === "error" ? result.error?.message ?? "Unexpected error." : "";
-          };
-        }}
-      >
-        <div class="grid gap-3 sm:grid-cols-3">
-          <div class="space-y-1">
-            <label class="text-xs text-muted-foreground" for="prizePoolSeason">Season</label>
-            <select
-              id="prizePoolSeason"
-              name="season"
-              bind:value={prizePoolSeason}
-              class="w-full rounded-md border px-3 py-2 text-sm"
-              required
-            >
-              <option value="2026">2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-              <option value="2029">2029</option>
-            </select>
-          </div>
-
-          <div class="space-y-1">
-            <label class="text-xs text-muted-foreground" for="prizePoolAmount">Prize Pool</label>
-            <select
-              id="prizePoolAmount"
-              name="prizePool"
-              bind:value={prizePoolAmount}
-              class="w-full rounded-md border px-3 py-2 text-sm"
-              required
-            >
-              <option value="2000000">$2 Million</option>
-              <option value="3000000">$3 Million</option>
-              <option value="4000000">$4 Million</option>
-              <option value="5000000">$5 Million</option>
-              <option value="6000000">$6 Million</option>
-            </select>
-          </div>
-
-          <div class="flex items-end">
-            <Button type="submit">
-              Set Prize Pool
-            </Button>
-          </div>
-        </div>
-
-        {#if currentSeasonSettings}
-          <div class="mt-3 rounded-md bg-emerald-50 p-3 text-sm text-emerald-700">
-            <strong>{prizePoolSeason} Prize Pool:</strong> ${(currentSeasonSettings.prizePool / 1000000).toFixed(0)}M
-            {#if currentSeasonSettings.distributed}
-              <span class="ml-2 text-emerald-600">(Distributed)</span>
-            {:else}
-              <span class="ml-2 text-amber-600">(Not yet distributed)</span>
-            {/if}
-          </div>
-        {:else}
-          <p class="mt-3 text-xs text-muted-foreground">No prize pool set for {prizePoolSeason} yet.</p>
-        {/if}
-      </form>
-    </CardContent>
-  </Card>
-
-  <Card>
-    <CardHeader>
       <CardTitle>Next Steps</CardTitle>
       <p class="text-sm text-muted-foreground">
         After creating a tournament, configure these settings before the event.
@@ -458,7 +458,7 @@
     <CardContent class="space-y-4">
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div class="rounded-lg border border-emerald-500 bg-emerald-50 p-4">
-          <h3 class="font-semibold text-emerald-700">Step 3: Tournament Settings ✓</h3>
+          <h3 class="font-semibold text-emerald-700">Step 4: Tournament Settings ✓</h3>
           <p class="mt-1 text-sm text-emerald-600">
             Configure tee times, starting hole, and format. Default: all groups start at hole 1 with 10-minute intervals.
           </p>
@@ -466,7 +466,7 @@
         </div>
 
         <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 4: Create Groups</h3>
+          <h3 class="font-semibold">Step 5: Create Groups</h3>
           <p class="mt-1 text-sm text-muted-foreground">
             Organize teams into groups (2 teams per group). Groups are assigned tee times automatically.
             Generate diverse matchups across all tournaments in a season (1-20 tournaments required).
@@ -508,7 +508,7 @@
         </div>
 
         <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 5: Generate Tee Sheet</h3>
+          <h3 class="font-semibold">Step 6: Generate Tee Sheet</h3>
           <p class="mt-1 text-sm text-muted-foreground">
             View and print the tee sheet showing all groups, times, and starting holes.
           </p>
@@ -516,7 +516,7 @@
         </div>
 
         <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 6: Live Scoring</h3>
+          <h3 class="font-semibold">Step 7: Live Scoring</h3>
           <p class="mt-1 text-sm text-muted-foreground">
             Scorekeepers enter scores hole-by-hole during the tournament.
           </p>
@@ -524,7 +524,7 @@
         </div>
 
         <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 7: Leaderboard</h3>
+          <h3 class="font-semibold">Step 8: Leaderboard</h3>
           <p class="mt-1 text-sm text-muted-foreground">
             Real-time leaderboard showing player standings and scores.
           </p>

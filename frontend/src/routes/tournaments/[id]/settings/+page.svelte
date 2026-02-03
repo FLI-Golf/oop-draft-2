@@ -1,21 +1,49 @@
 <script lang="ts">
+  import { enhance } from "$app/forms";
+  import { Button } from "$lib/components/ui/button";
+  
   export let data;
+  export let form;
 
-  const t = data.tournament;
-  const s = data.settings;
+  $: t = data.tournament;
+  $: s = data.settings;
+  
+  let status = "";
 </script>
 
 <div class="p-6 space-y-6">
-  <div>
-    <h1 class="text-xl font-semibold">Tournament settings</h1>
-    <p class="text-sm text-muted-foreground">{t.name ?? t.id}</p>
+  <div class="flex items-start justify-between">
+    <div>
+      <h1 class="text-xl font-semibold">Tournament settings</h1>
+      <p class="text-sm text-muted-foreground">{t.name ?? t.id}</p>
+    </div>
+    <Button variant="outline" asChild>
+      <a href="/tournaments">← Back to Tournaments</a>
+    </Button>
   </div>
 
-  {#if data?.error}
-    <p class="text-sm text-red-600">{data.error}</p>
+  {#if form?.error}
+    <p class="text-sm text-red-600">{form.error}</p>
+  {/if}
+  
+  {#if form?.success || status}
+    <p class="text-sm text-emerald-600">Settings saved successfully!</p>
   {/if}
 
-  <form method="POST" action="?/save" class="space-y-4 max-w-md">
+  <form 
+    method="POST" 
+    action="?/save" 
+    class="space-y-4 max-w-md"
+    use:enhance={() => {
+      status = "";
+      return async ({ result, update }) => {
+        if (result.type === "success") {
+          status = "saved";
+        }
+        await update();
+      };
+    }}
+  >
     <input type="hidden" name="settingsId" value={s.id} />
 
     <div class="space-y-1">
