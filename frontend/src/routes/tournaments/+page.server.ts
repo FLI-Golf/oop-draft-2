@@ -35,6 +35,41 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
+  createCourse: async ({ request }) => {
+    const pb = getServerPB();
+    const data = await request.formData();
+
+    const name = String(data.get("courseName") ?? "").trim();
+    const distancesRaw = String(data.get("baseHoleDistances") ?? "").trim();
+
+    if (!name || !distancesRaw) {
+      return fail(400, { courseError: "Missing required fields." });
+    }
+
+    // Parse comma or space separated distances
+    const distances = distancesRaw
+      .split(/[\s,]+/)
+      .map((s) => parseFloat(s.trim()))
+      .filter((n) => !isNaN(n));
+
+    if (distances.length !== 9 || !distances.every((n) => isFinite(n))) {
+      return fail(400, { courseError: "Distances must be exactly 9 valid numbers." });
+    }
+
+    try {
+      const created = await pb.collection("courses").create<CourseRecord>({
+        name,
+        baseHoleDistances: distances
+      });
+
+      return { courseSuccess: true, createdCourseId: created.id };
+    } catch (e: any) {
+      return fail(e?.status || 500, {
+        courseError: e?.message || "Create course failed."
+      });
+    }
+  },
+
   createTournament: async ({ request }) => {
     const pb = getServerPB();
     const data = await request.formData();

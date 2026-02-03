@@ -96,7 +96,12 @@
 
   let status = "";
   let error = "";
-  
+
+  // Course form state
+  let courseName = "";
+  let baseHoleDistances = "";
+  let courseStatus = "";
+  let courseError = "";
 </script>
 
 <div class="flex items-start justify-between">
@@ -120,7 +125,82 @@
 
   <Card>
     <CardHeader>
-      <CardTitle>Create tournament</CardTitle>
+      <CardTitle>Step 1: Create course</CardTitle>
+      <p class="text-sm text-muted-foreground">
+        Courses define the 9-hole layout with base distances. Create a course first, then use it when creating tournaments.
+      </p>
+    </CardHeader>
+    <CardContent class="space-y-4">
+      {#if courseStatus}
+        <p class="text-sm text-emerald-600">{courseStatus}</p>
+      {/if}
+      {#if courseError}
+        <p class="text-sm text-red-600">{courseError}</p>
+      {/if}
+
+      <form
+        method="POST"
+        action="?/createCourse"
+        use:enhance={() => {
+          return async ({ result }) => {
+            if (result.type === "success") {
+              courseStatus = "Course created ✅";
+              courseError = "";
+              courseName = "";
+              baseHoleDistances = "";
+              await nav.invalidateAll();
+              return;
+            }
+
+            if (result.type === "failure") {
+              courseStatus = "";
+              courseError = (result.data as { courseError?: string })?.courseError ?? "Create failed.";
+              return;
+            }
+
+            courseStatus = "";
+            courseError =
+              result.type === "error"
+                ? result.error?.message ?? "Unexpected error."
+                : "Redirecting…";
+          };
+        }}
+      >
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div class="space-y-1">
+            <label class="text-xs text-muted-foreground" for="courseName">Course name</label>
+            <Input id="courseName" name="courseName" bind:value={courseName} placeholder="FLI Stadium" required />
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs text-muted-foreground" for="baseHoleDistances">
+              Base hole distances (9 numbers, comma-separated)
+            </label>
+            <Input
+              id="baseHoleDistances"
+              name="baseHoleDistances"
+              bind:value={baseHoleDistances}
+              placeholder="310,295,340,265,360,315,285,370,300"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <Button type="submit" disabled={!courseName || !baseHoleDistances}>
+            Create course
+          </Button>
+        </div>
+      </form>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>Step 2: Create tournament</CardTitle>
+      <p class="text-sm text-muted-foreground">
+        Tournaments are events held on a course during a season. Select a course from the dropdown (created above).
+      </p>
     </CardHeader>
     <CardContent class="space-y-4">
       <form
@@ -245,6 +325,66 @@
           {/if}
         </TableBody>
       </Table>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <CardTitle>Next Steps</CardTitle>
+      <p class="text-sm text-muted-foreground">
+        After creating a tournament, configure these settings before the event.
+      </p>
+    </CardHeader>
+    <CardContent class="space-y-4">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="rounded-lg border p-4">
+          <h3 class="font-semibold">Step 3: Tournament Settings</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Configure tee times, starting hole, and format. Default: all groups start at hole 1 with 10-minute intervals.
+          </p>
+          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
+        </div>
+
+        <div class="rounded-lg border p-4">
+          <h3 class="font-semibold">Step 4: Add Players</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Register players for the tournament. Players can be assigned to groups for tee times.
+          </p>
+          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
+        </div>
+
+        <div class="rounded-lg border p-4">
+          <h3 class="font-semibold">Step 5: Create Groups</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Organize players into groups (2-4 players each). Groups are assigned tee times automatically.
+          </p>
+          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
+        </div>
+
+        <div class="rounded-lg border p-4">
+          <h3 class="font-semibold">Step 6: Generate Tee Sheet</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            View and print the tee sheet showing all groups, times, and starting holes.
+          </p>
+          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
+        </div>
+
+        <div class="rounded-lg border p-4">
+          <h3 class="font-semibold">Step 7: Live Scoring</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Scorekeepers enter scores hole-by-hole during the tournament.
+          </p>
+          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
+        </div>
+
+        <div class="rounded-lg border p-4">
+          <h3 class="font-semibold">Step 8: Leaderboard</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Real-time leaderboard showing player standings and scores.
+          </p>
+          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
+        </div>
+      </div>
     </CardContent>
   </Card>
 

@@ -81,6 +81,7 @@ backend/
   pocket              → PocketBase binary
   pb_migrations/      → Schema migrations (tracked)
   pb_data/            → Runtime database (ignored)
+  seed_data/          → Database seed scripts
   docs/               → PocketBase reference docs & notes
 
 shared/
@@ -116,17 +117,85 @@ shared/
 
 ---
 
-## Getting Started (Local Development)
+## Getting Started
 
-### 1. Install dependencies
+### Environment Files
+
+Two environment templates are provided:
+
+| File | Use Case |
+|------|----------|
+| `.env.ona` | Gitpod / Ona sessions |
+| `.env.codespace` | GitHub Codespaces |
+
+Copy the appropriate file to `.env` or source it directly:
+
+```bash
+# Gitpod/Ona
+source .env.ona
+
+# GitHub Codespaces
+source .env.codespace
+```
+
+---
+
+### Quick Start (Ona/Gitpod Sessions)
+
+For returning to the project after a break:
+
+```bash
+source .env.ona
+./scripts/ona-setup.sh
+```
+
+This installs dependencies, creates the superuser, and runs migrations.
+
+Then start services:
+
+```bash
+# Terminal 1: PocketBase
+cd backend && ./pb.sh
+
+# Terminal 2: Frontend
+cd frontend && pnpm dev
+
+# Terminal 3 (optional): Seed database
+cd backend/seed_data
+./seed-pros.sh    # Creates 14 teams, 28 players (real PDGA pros)
+```
+
+---
+
+### Quick Start (GitHub Codespaces)
+
+```bash
+source .env.codespace
+./scripts/ona-setup.sh
+```
+
+Then start services (same as above). Access via forwarded ports in the Codespaces UI.
+
+---
+
+### Manual Setup
+
+#### 1. Install dependencies
 
 ```bash
 pnpm install
+cd backend && pnpm install --ignore-workspace
 ```
 
-### 2. Start PocketBase
+> Note: Backend is not in pnpm workspace, requires separate install.
 
-PocketBase is started via the project wrapper script.
+#### 2. Create superuser
+
+```bash
+cd backend && ./bin/pocketbase superuser upsert EMAIL PASSWORD
+```
+
+#### 3. Start PocketBase
 
 ```bash
 cd backend
@@ -145,7 +214,7 @@ http://127.0.0.1:8090/_/
 
 ---
 
-### 3. Run the frontend
+#### 4. Run the frontend
 
 ```bash
 cd frontend
@@ -157,6 +226,22 @@ pnpm dev
 ```
 http://localhost:5173
 ```
+
+---
+
+#### 5. Seed database (optional)
+
+With PocketBase running:
+
+```bash
+cd backend/seed_data
+./seed-pros.sh
+```
+
+This creates:
+- 12 Pro Teams with real PDGA pros (24 rostered players: 12 male, 12 female)
+- 4 Reserve Players (2 male, 2 female) - not on teams, fill in when needed
+- Total: 12 teams, 28 players with ratings and world rankings
 
 ---
 
