@@ -70,6 +70,13 @@
     return sortDir === "asc" ? c : -c;
   });
 
+  type SeasonSettings = {
+    id: string;
+    season: string;
+    prizePool: number;
+    distributed: boolean;
+  };
+
   export let data: {
     courses: { id: string; name: string }[];
     tournaments: {
@@ -80,6 +87,8 @@
       season?: "2026" | "2027" | "2028" | "2029";
       expand?: { course?: { name: string } };
     }[];
+    tournamentCountsBySeason: Record<string, number>;
+    seasonSettingsMap: Record<string, SeasonSettings>;
   };
 
   let selectedCourseId = data.courses?.[0]?.id ?? "";
@@ -102,6 +111,17 @@
   let baseHoleDistances = "";
   let courseStatus = "";
   let courseError = "";
+
+  // Group generation state
+  let groupSeasonSelect = "2026";
+  $: groupTournamentCount = data.tournamentCountsBySeason[groupSeasonSelect] ?? 0;
+  $: isValidGroupCount = groupTournamentCount >= 1 && groupTournamentCount <= 20;
+
+  // Prize pool state
+  let prizePoolSeason = "2026";
+  let prizePoolAmount = "4000000";
+  $: currentSeasonSettings = data.seasonSettingsMap[prizePoolSeason];
+  $: hasPrizePool = !!currentSeasonSettings?.prizePool;
 </script>
 
 <div class="flex items-start justify-between">
@@ -344,6 +364,92 @@
 
   <Card>
     <CardHeader>
+      <CardTitle>Season Prize Pool</CardTitle>
+      <p class="text-sm text-muted-foreground">
+        Set the total prize pool for a season. Prize money will be distributed across all tournaments ensuring every team gets paid.
+      </p>
+    </CardHeader>
+    <CardContent class="space-y-4">
+      <form
+        method="POST"
+        action="?/setSeasonPrizePool"
+        use:enhance={() => {
+          return async ({ result }) => {
+            if (result.type === "success") {
+              status = "Prize pool saved ✅";
+              error = "";
+              await nav.invalidateAll();
+              return;
+            }
+            if (result.type === "failure") {
+              status = "";
+              error = (result.data as { error?: string })?.error ?? "Failed to set prize pool.";
+              return;
+            }
+            status = "";
+            error = result.type === "error" ? result.error?.message ?? "Unexpected error." : "";
+          };
+        }}
+      >
+        <div class="grid gap-3 sm:grid-cols-3">
+          <div class="space-y-1">
+            <label class="text-xs text-muted-foreground" for="prizePoolSeason">Season</label>
+            <select
+              id="prizePoolSeason"
+              name="season"
+              bind:value={prizePoolSeason}
+              class="w-full rounded-md border px-3 py-2 text-sm"
+              required
+            >
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+              <option value="2029">2029</option>
+            </select>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs text-muted-foreground" for="prizePoolAmount">Prize Pool</label>
+            <select
+              id="prizePoolAmount"
+              name="prizePool"
+              bind:value={prizePoolAmount}
+              class="w-full rounded-md border px-3 py-2 text-sm"
+              required
+            >
+              <option value="2000000">$2 Million</option>
+              <option value="3000000">$3 Million</option>
+              <option value="4000000">$4 Million</option>
+              <option value="5000000">$5 Million</option>
+              <option value="6000000">$6 Million</option>
+            </select>
+          </div>
+
+          <div class="flex items-end">
+            <Button type="submit">
+              Set Prize Pool
+            </Button>
+          </div>
+        </div>
+
+        {#if currentSeasonSettings}
+          <div class="mt-3 rounded-md bg-emerald-50 p-3 text-sm text-emerald-700">
+            <strong>{prizePoolSeason} Prize Pool:</strong> ${(currentSeasonSettings.prizePool / 1000000).toFixed(0)}M
+            {#if currentSeasonSettings.distributed}
+              <span class="ml-2 text-emerald-600">(Distributed)</span>
+            {:else}
+              <span class="ml-2 text-amber-600">(Not yet distributed)</span>
+            {/if}
+          </div>
+        {:else}
+          <p class="mt-3 text-xs text-muted-foreground">No prize pool set for {prizePoolSeason} yet.</p>
+        {/if}
+      </form>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
       <CardTitle>Next Steps</CardTitle>
       <p class="text-sm text-muted-foreground">
         After creating a tournament, configure these settings before the event.
@@ -351,32 +457,58 @@
     </CardHeader>
     <CardContent class="space-y-4">
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 3: Tournament Settings</h3>
-          <p class="mt-1 text-sm text-muted-foreground">
+        <div class="rounded-lg border border-emerald-500 bg-emerald-50 p-4">
+          <h3 class="font-semibold text-emerald-700">Step 3: Tournament Settings ✓</h3>
+          <p class="mt-1 text-sm text-emerald-600">
             Configure tee times, starting hole, and format. Default: all groups start at hole 1 with 10-minute intervals.
           </p>
-          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
+          <p class="mt-2 text-xs text-emerald-600 font-medium">Completed</p>
         </div>
 
         <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 4: Add Players</h3>
+          <h3 class="font-semibold">Step 4: Create Groups</h3>
           <p class="mt-1 text-sm text-muted-foreground">
-            Register players for the tournament. Players can be assigned to groups for tee times.
+            Organize teams into groups (2 teams per group). Groups are assigned tee times automatically.
+            Generate diverse matchups across all tournaments in a season (1-20 tournaments required).
           </p>
-          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
+          <form method="POST" action="?/generateGroups" use:enhance={() => {
+            return async ({ result }) => {
+              if (result.type === "success") {
+                status = "Groups generated for season ✅";
+                error = "";
+                await nav.invalidateAll();
+                return;
+              }
+              if (result.type === "failure") {
+                status = "";
+                error = (result.data as { error?: string })?.error ?? "Generation failed.";
+                return;
+              }
+              status = "";
+              error = result.type === "error" ? result.error?.message ?? "Unexpected error." : "";
+            };
+          }}>
+            <div class="mt-3 flex items-center gap-2">
+              <select name="season" bind:value={groupSeasonSelect} class="rounded-md border px-3 py-2 text-sm" required>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+              </select>
+              <Button type="submit" variant="outline" size="sm" disabled={!isValidGroupCount}>
+                Generate Groups ({groupTournamentCount} tournament{groupTournamentCount !== 1 ? 's' : ''})
+              </Button>
+            </div>
+            {#if groupTournamentCount === 0}
+              <p class="mt-2 text-xs text-amber-600">No tournaments for this season. Create tournaments first.</p>
+            {:else if groupTournamentCount > 20}
+              <p class="mt-2 text-xs text-red-600">Too many tournaments ({groupTournamentCount}). Maximum is 20.</p>
+            {/if}
+          </form>
         </div>
 
         <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 5: Create Groups</h3>
-          <p class="mt-1 text-sm text-muted-foreground">
-            Organize players into groups (2-4 players each). Groups are assigned tee times automatically.
-          </p>
-          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
-        </div>
-
-        <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 6: Generate Tee Sheet</h3>
+          <h3 class="font-semibold">Step 5: Generate Tee Sheet</h3>
           <p class="mt-1 text-sm text-muted-foreground">
             View and print the tee sheet showing all groups, times, and starting holes.
           </p>
@@ -384,7 +516,7 @@
         </div>
 
         <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 7: Live Scoring</h3>
+          <h3 class="font-semibold">Step 6: Live Scoring</h3>
           <p class="mt-1 text-sm text-muted-foreground">
             Scorekeepers enter scores hole-by-hole during the tournament.
           </p>
@@ -392,7 +524,7 @@
         </div>
 
         <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 8: Leaderboard</h3>
+          <h3 class="font-semibold">Step 7: Leaderboard</h3>
           <p class="mt-1 text-sm text-muted-foreground">
             Real-time leaderboard showing player standings and scores.
           </p>
