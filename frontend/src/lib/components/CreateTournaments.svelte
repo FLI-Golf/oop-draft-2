@@ -289,37 +289,51 @@
     </CardHeader>
     <CardContent>
       <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
 
-          <TableHead>
-            <button
-              type="button"
-              class="flex items-center gap-1 hover:underline"
-              on:click={() => toggleSort("date")}
-            >
-              Date{sortIndicator("date")}
-            </button>
-          </TableHead>
+            <TableHead>
+              <button
+                type="button"
+                class="flex items-center gap-1 hover:underline"
+                on:click={() => toggleSort("date")}
+              >
+                Date{sortIndicator("date")}
+              </button>
+            </TableHead>
 
-          <TableHead>Course</TableHead>
-          <TableHead>Season</TableHead>
-        </TableRow>
-      </TableHeader>
+            <TableHead>Course</TableHead>
+            <TableHead>Season</TableHead>
+
+            <!-- Settings column -->
+            <TableHead class="w-12 text-right"></TableHead>
+          </TableRow>
+        </TableHeader>
 
         <TableBody>
           {#if data.tournaments.length === 0}
             <TableRow>
-              <TableCell colspan="4" class="text-muted-foreground">No tournaments yet.</TableCell>
+              <TableCell colspan="5" class="text-muted-foreground">No tournaments yet.</TableCell>
             </TableRow>
           {:else}
             {#each sortedTournaments as t}
-              <TableRow>
+              <TableRow class="group">
                 <TableCell>{t.name}</TableCell>
                 <TableCell>{new Date(t.date).toDateString()}</TableCell>
                 <TableCell>{t.expand?.course?.name ?? t.course}</TableCell>
                 <TableCell>{t.season ?? "-"}</TableCell>
+
+                <TableCell class="text-right">
+                  <a
+                    href={`/tournaments/${t.id}/settings`}
+                    class="inline-flex items-center justify-center rounded-md p-2 opacity-0 transition group-hover:opacity-100 hover:bg-black/10 focus:outline-none focus:ring"
+                    aria-label={`Open settings for ${t.name}`}
+                    title="Tournament settings"
+                  >
+                    ⚙️
+                  </a>
+                </TableCell>
               </TableRow>
             {/each}
           {/if}

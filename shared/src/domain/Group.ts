@@ -1,27 +1,27 @@
-import { Player } from "./Player";
+import type { Team } from "./Team";
 
 /**
- * Group represents players who play together during a tournament round.
- * Typically 2-4 players per group.
+ * Group represents teams who play together during a tournament round.
+ * Typically 2-4 teams per group.
  */
 export class Group {
-  static readonly MIN_PLAYERS = 1;
-  static readonly MAX_PLAYERS = 4;
+  static readonly MIN_TEAMS = 2;  // change if your format allows 1
+  static readonly MAX_TEAMS = 4;
 
   constructor(
     public readonly id: string,
-    public readonly players: Player[]
+    public readonly teams: Team[]
   ) {
     if (!id) {
       throw new Error("Group requires an id");
     }
 
-    if (players.length < Group.MIN_PLAYERS || players.length > Group.MAX_PLAYERS) {
-      throw new Error(`Group must have ${Group.MIN_PLAYERS}-${Group.MAX_PLAYERS} players`);
+    if (teams.length < Group.MIN_TEAMS || teams.length > Group.MAX_TEAMS) {
+      throw new Error(`Group must have ${Group.MIN_TEAMS}-${Group.MAX_TEAMS} teams`);
     }
   }
 
   get size(): number {
-    return this.players.length;
+    return this.teams.length;
   }
 }
