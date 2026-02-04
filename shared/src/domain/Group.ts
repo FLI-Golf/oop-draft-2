@@ -1,23 +1,35 @@
 import type { Team } from "./Team";
 
-/**
- * Group represents teams who play together during a tournament round.
- * Typically 2-4 teams per group.
- */
+export type GroupStage = "standard" | "playoff";
+
 export class Group {
-  static readonly MIN_TEAMS = 2;  // change if your format allows 1
-  static readonly MAX_TEAMS = 4;
+  static readonly STANDARD_TEAM_COUNT = 2;
+  static readonly MIN_PLAYOFF_TEAMS = 2;
+  static readonly MAX_PLAYOFF_TEAMS = 4; // adjust if needed
 
   constructor(
     public readonly id: string,
-    public readonly teams: Team[]
+    public readonly tournamentId: string,
+    public readonly stage: GroupStage,
+    public readonly teams: Team[],
+    public readonly round?: number // optional: normal rounds or playoff rounds
   ) {
-    if (!id) {
-      throw new Error("Group requires an id");
-    }
+    if (!id) throw new Error("Group requires an id");
+    if (!tournamentId) throw new Error("Group requires a tournamentId");
 
-    if (teams.length < Group.MIN_TEAMS || teams.length > Group.MAX_TEAMS) {
-      throw new Error(`Group must have ${Group.MIN_TEAMS}-${Group.MAX_TEAMS} teams`);
+    if (stage === "standard") {
+      if (teams.length !== Group.STANDARD_TEAM_COUNT) {
+        throw new Error(`Standard group must have exactly ${Group.STANDARD_TEAM_COUNT} teams`);
+      }
+    } else {
+      if (
+        teams.length < Group.MIN_PLAYOFF_TEAMS ||
+        teams.length > Group.MAX_PLAYOFF_TEAMS
+      ) {
+        throw new Error(
+          `Playoff group must have ${Group.MIN_PLAYOFF_TEAMS}-${Group.MAX_PLAYOFF_TEAMS} teams`
+        );
+      }
     }
   }
 

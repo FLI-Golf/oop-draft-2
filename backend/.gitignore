@@ -1,0 +1,5 @@
+.env
+backend/.env
+backend/pb_data/
+pb_data/
+.env.secrets

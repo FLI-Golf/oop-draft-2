@@ -8,6 +8,14 @@ type PlayerRecord = {
   gender: "male" | "female";
 };
 
+type TournamentSettingsRecord = {
+  id: string;
+  tournament: string;
+  format: string;
+  scoringModel?: string;
+  groupSize?: number;
+};
+
 type TeamRecord = {
   id: string;
   name: string;
