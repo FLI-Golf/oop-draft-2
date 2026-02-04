@@ -89,6 +89,7 @@
     }[];
     tournamentCountsBySeason: Record<string, number>;
     seasonSettingsMap: Record<string, SeasonSettings>;
+    groupsExistBySeason: Record<string, boolean>;
   };
 
   let selectedCourseId = data.courses?.[0]?.id ?? "";
@@ -115,7 +116,8 @@
   // Group generation state
   let groupSeasonSelect = "2026";
   $: groupTournamentCount = data.tournamentCountsBySeason[groupSeasonSelect] ?? 0;
-  $: isValidGroupCount = groupTournamentCount >= 1 && groupTournamentCount <= 20;
+  $: groupsAlreadyExist = data.groupsExistBySeason?.[groupSeasonSelect] ?? false;
+  $: isValidGroupCount = groupTournamentCount >= 1 && groupTournamentCount <= 20 && !groupsAlreadyExist;
 
   // Prize pool state
   let prizePoolSeason = "2026";
@@ -495,11 +497,14 @@
                 <option value="2028">2028</option>
                 <option value="2029">2029</option>
               </select>
-              <Button type="submit" variant="outline" size="sm" disabled={!isValidGroupCount}>
-                Generate Groups ({groupTournamentCount} tournament{groupTournamentCount !== 1 ? 's' : ''})
+              <Button type="submit" variant="outline" size="sm" disabled={!isValidGroupCount} class="flex flex-col h-auto py-2">
+                <span>Generate Groups</span>
+                <span class="text-xs">({groupTournamentCount} tournament{groupTournamentCount !== 1 ? 's' : ''})</span>
               </Button>
             </div>
-            {#if groupTournamentCount === 0}
+            {#if groupsAlreadyExist}
+              <p class="mt-2 text-xs text-emerald-600">Groups already generated for {groupSeasonSelect}. <a href="/dashboard?season={groupSeasonSelect}" class="underline">View Dashboard</a></p>
+            {:else if groupTournamentCount === 0}
               <p class="mt-2 text-xs text-amber-600">No tournaments for this season. Create tournaments first.</p>
             {:else if groupTournamentCount > 20}
               <p class="mt-2 text-xs text-red-600">Too many tournaments ({groupTournamentCount}). Maximum is 20.</p>
@@ -508,11 +513,13 @@
         </div>
 
         <div class="rounded-lg border p-4">
-          <h3 class="font-semibold">Step 6: Generate Tee Sheet</h3>
+          <h3 class="font-semibold">Step 6: Display Tournaments Dashboard</h3>
           <p class="mt-1 text-sm text-muted-foreground">
-            View and print the tee sheet showing all groups, times, and starting holes.
+            View tee sheets, groups, times, and starting holes for all tournaments.
           </p>
-          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
+          <a href="/dashboard" class="mt-3 inline-block">
+            <Button variant="outline" size="sm">View Dashboard</Button>
+          </a>
         </div>
 
         <div class="rounded-lg border p-4">
@@ -520,7 +527,9 @@
           <p class="mt-1 text-sm text-muted-foreground">
             Scorekeepers enter scores hole-by-hole during the tournament.
           </p>
-          <p class="mt-2 text-xs text-muted-foreground italic">Coming soon</p>
+          <a href="/scoring" class="mt-3 inline-block">
+            <Button variant="outline" size="sm">Enter Scores</Button>
+          </a>
         </div>
 
         <div class="rounded-lg border p-4">

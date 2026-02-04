@@ -4,18 +4,23 @@
 
   type Task = { id: string; text: string };
   type Section = { id: string; title: string; description?: string; tasks: Task[] };
-  type Progress = { done: number; total: number };
 
   export let section: Section;
   export let collapsed: boolean;
-  export let prog: Progress;
-  export let checked: Record<string, boolean>;
   export let onToggle: () => void;
-  export let onToggleTask: (id: string) => void;
+  
+  // Keep these for backwards compatibility but they're optional now
+  export let prog: { done: number; total: number } | null = null;
+  export let checked: Record<string, boolean> = {};
+  export let onToggleTask: (id: string) => void = () => {};
 
   function onKeydown(e: KeyboardEvent) {
     if (e.key === "Enter" || e.key === " ") onToggle();
   }
+
+  // Count completed tasks by checking for ✅ prefix
+  $: completedCount = section.tasks.filter(t => t.text.startsWith("✅")).length;
+  $: totalCount = section.tasks.length;
 </script>
 
 <Card>
@@ -32,7 +37,7 @@
 
       <div class="ml-auto flex items-center gap-3">
         <span class="text-sm text-muted-foreground whitespace-nowrap">
-        {prog.done}/{prog.total} Tasks completed
+          {completedCount}/{totalCount} done
         </span>
 
         <button
@@ -58,17 +63,10 @@
   {#if !collapsed}
     <CardContent class="space-y-2">
       {#each section.tasks as t (t.id)}
-        <label class="flex items-start gap-3 rounded-md border p-3 hover:bg-muted/40 cursor-pointer">
-          <input
-            type="checkbox"
-            class="mt-1 h-4 w-4"
-            checked={!!checked[t.id]}
-            on:change={() => onToggleTask(t.id)}
-          />
-          <div class="text-sm">
-            <div class="leading-snug">{t.text}</div>
-          </div>
-        </label>
+        {@const isComplete = t.text.startsWith("✅")}
+        <div class="rounded-md border p-3 {isComplete ? 'bg-emerald-50 border-emerald-200' : ''}">
+          <div class="text-sm leading-snug">{t.text}</div>
+        </div>
       {/each}
     </CardContent>
   {/if}

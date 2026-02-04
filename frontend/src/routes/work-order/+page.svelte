@@ -18,9 +18,9 @@
       description:
         "Build a responsive website + companion app experience for the FLI Golf League, powered by PocketBase. Focus: league info, live scoring + stats, fantasy gameplay, media, merch, and admin tools for staff.",
       tasks: [
-        { id: "ov-1", text: "Confirm season structure (teams, tournaments, venues, scoring cadence)" },
-        { id: "ov-2", text: "Define content model in PocketBase (teams, players, tournaments, courses, scores, media, merch)" },
-        { id: "ov-3", text: "Define user roles + permissions (anonymous / authenticated / scorekeeper / admin)" },
+        { id: "ov-1", text: "✅ Confirm season structure (teams, tournaments, venues, scoring cadence)" },
+        { id: "ov-2", text: "✅ Define content model in PocketBase (teams, players, tournaments, courses, scores, media, merch)" },
+        { id: "ov-3", text: "✅ Define user roles + permissions (anonymous / authenticated / scorekeeper / admin)" },
         { id: "ov-4", text: "Confirm fantasy rules + points system (v1 scope)" }
       ]
     },
@@ -33,22 +33,22 @@
       {
         id: "r-1",
         text:
-          "Basic User: browse league info, schedules, tournaments, courses, teams/players, read-only access to public data"
+          "✅ Basic User: browse league info, schedules, tournaments, courses, teams/players, read-only access to public data"
       },
       {
         id: "r-2",
         text:
-          "Pro: read-only access plus limited interactions (e.g. posting comments or feedback — capability shown in policy but not fully implemented)"
+          "✅ Pro: read-only access plus limited interactions (e.g. posting comments or feedback — capability shown in policy but not fully implemented)"
       },
       {
         id: "r-3",
         text:
-          "Scorekeeper: enter and update scores, validate rounds/holes, access scorekeeping tools"
+          "✅ Scorekeeper: enter and update scores, validate rounds/holes, access scorekeeping tools"
       },
       {
         id: "r-4",
         text:
-          "Admin: full CRUD access, tournament/course management, overrides, user role assignment, system configuration"
+          "✅ Admin: full CRUD access, tournament/course management, overrides, user role assignment, system configuration"
       }
     ]
   },
@@ -110,11 +110,25 @@
       id: "admin-tools",
       title: "🛠️ Backend / Admin Tools",
       tasks: [
-        { id: "a-1", text: "Score entry UI for scorekeepers (tournament → round → hole-by-hole)" },
-        { id: "a-2", text: "Player/team stat entry & editing" },
-        { id: "a-3", text: "Fantasy scoring override controls (admin only)" },
-        { id: "a-4", text: "Media upload + content scheduling" },
-        { id: "a-5", text: "Audit-friendly logging (who changed what + when)" }
+        { id: "a-1", text: "✅ Season Prize Pool configuration (Step 1 in tournament workflow)" },
+        { id: "a-2", text: "✅ Course creation with 9-hole layouts and base distances" },
+        { id: "a-3", text: "✅ Tournament creation with season, date, and course assignment" },
+        { id: "a-4", text: "✅ Tournament settings (tee times, intervals, starting hole, format)" },
+        { id: "a-5", text: "✅ Group generation with automatic tee time assignment" },
+        { id: "a-6", text: "✅ Tournaments Dashboard - view tee sheets, groups, and schedules" },
+        { id: "a-7", text: "✅ Live Scoring UI - 18-hole scoring (front 9 + back 9) with +/- buttons" },
+        { id: "a-8", text: "✅ All 4 players per hole scoring interface" },
+        { id: "a-9", text: "✅ Scorecard summary with real-time totals" },
+        { id: "a-10", text: "✅ Group status tracking (pending → in_progress → complete)" },
+        { id: "a-11", text: "✅ Playoff system for ties (closest-to-hole competition)" },
+        { id: "a-12", text: "✅ Playoff distance entry and winner determination" },
+        { id: "a-13", text: "✅ League info page (teams, players, standings, upcoming events)" },
+        { id: "a-14", text: "✅ Role-based navigation (Admin, Scorekeeper, Pro, Basic User, Anonymous)" },
+        { id: "a-15", text: "✅ Demo role selector in navbar for prototype testing" },
+        { id: "a-16", text: "Player/team stat entry & editing" },
+        { id: "a-17", text: "Fantasy scoring override controls (admin only)" },
+        { id: "a-18", text: "Media upload + content scheduling" },
+        { id: "a-19", text: "Audit-friendly logging (who changed what + when)" }
       ]
     },
     {
@@ -133,10 +147,10 @@
       id: "tech",
       title: "🧱 Technical Requirements (Updated)",
       tasks: [
-        { id: "t-1", text: "Frontend: SvelteKit + Tailwind + shadcn-svelte UI primitives" },
-        { id: "t-2", text: "Backend: PocketBase (collections, auth, rules, migrations)" },
-        { id: "t-3", text: "Auth: PocketBase auth; roles via PB auth model / custom fields / rules" },
-        { id: "t-4", text: "Data access: server load/actions for secure operations; role-based UI rendering" },
+        { id: "t-1", text: "✅ Frontend: SvelteKit + Tailwind + shadcn-svelte UI primitives" },
+        { id: "t-2", text: "✅ Backend: PocketBase (collections, auth, rules, migrations)" },
+        { id: "t-3", text: "✅ Auth: PocketBase auth; roles via PB auth model / custom fields / rules" },
+        { id: "t-4", text: "✅ Data access: server load/actions for secure operations; role-based UI rendering" },
         { id: "t-5", text: "Future: PocketBase Go hooks for validations + derived data to shrink TS code" }
       ]
     },
@@ -144,10 +158,10 @@
       id: "timeline",
       title: "📆 Timeline / Phases (Prototype-Friendly)",
       tasks: [
-        { id: "p-1", text: "Phase 1: Data model + admin score entry flows (core prototype)" },
-        { id: "p-2", text: "Phase 2: Public league pages + basic media hub" },
+        { id: "p-1", text: "✅ Phase 1: Data model + admin score entry flows (core prototype)" },
+        { id: "p-2", text: "✅ Phase 2: Public league pages + basic media hub" },
         { id: "p-3", text: "Phase 3: Fantasy v1 (picks + leaderboard) tied to real score data" },
-        { id: "p-4", text: "Phase 4: Hardening: rules, role permissions, audits, seed data" }
+        { id: "p-4", text: "✅ Phase 4: Hardening: rules, role permissions, audits, seed data" }
       ]
     },
     {

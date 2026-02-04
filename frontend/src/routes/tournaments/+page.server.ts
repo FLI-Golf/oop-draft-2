@@ -76,7 +76,21 @@ export const load: PageServerLoad = async () => {
     seasonSettingsMap[s.season] = s;
   }
 
-  return { courses, tournaments, tournamentCountsBySeason, seasonSettingsMap };
+  // Check which seasons already have groups generated
+  const groupsExistBySeason: Record<string, boolean> = {};
+  for (const season of ["2026", "2027", "2028", "2029"]) {
+    const seasonTournaments = tournaments.filter(t => t.season === season);
+    if (seasonTournaments.length > 0) {
+      const existingGroups = await pb.collection("groups").getList(1, 1, {
+        filter: seasonTournaments.map(t => `tournament="${t.id}"`).join(" || ")
+      });
+      groupsExistBySeason[season] = existingGroups.totalItems > 0;
+    } else {
+      groupsExistBySeason[season] = false;
+    }
+  }
+
+  return { courses, tournaments, tournamentCountsBySeason, seasonSettingsMap, groupsExistBySeason };
 };
 
 export const actions: Actions = {
