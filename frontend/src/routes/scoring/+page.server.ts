@@ -42,6 +42,7 @@ type GroupRecord = {
   groupNumber: number;
   teeTime: string;
   startingHole: number;
+  stage: "standard" | "playoff";
   status: "pending" | "in_progress" | "complete" | "";
   expand?: {
     tournament?: TournamentRecord;

@@ -29,6 +29,8 @@ type GroupRecord = {
   tournament: string;
   team1: string;
   team2: string;
+  stage: "standard" | "playoff";
+  status: "pending" | "in_progress" | "complete";
 };
 
 type SeasonSettingsRecord = {
@@ -366,7 +368,9 @@ export const actions: Actions = {
             team2,
             groupNumber: g + 1,
             teeTime,
-            startingHole
+            startingHole,
+            stage: "standard",
+            status: "pending"
           });
         }
 

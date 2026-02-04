@@ -20,6 +20,9 @@ export { League } from "./League";
 export { Round } from "./Round";
 export { Score } from "./Score";
 
+// Scoring engines
+export * from "./scoring";
+
 // Fantasy system
 export { FantasyParticipant } from "./FantasyParticipant";
 export { FantasyDraft, type DraftPick } from "./FantasyDraft";
