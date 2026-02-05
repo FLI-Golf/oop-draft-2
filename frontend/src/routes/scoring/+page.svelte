@@ -2,7 +2,6 @@
   import { goto, invalidateAll } from "$app/navigation";
   import { enhance } from "$app/forms";
   import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
-  import { Button } from "$lib/components/ui/button";
 
   export let data;
 
@@ -198,9 +197,7 @@
       <p class="text-muted-foreground">Enter scores hole-by-hole for each player</p>
     </div>
 
-    <Button variant="outline" asChild>
-      <a href="/tournaments">← Back to Admin</a>
-    </Button>
+    <a href="/tournaments" class="px-4 py-2 border rounded-md inline-block hover:bg-gray-100 transition">← Back to Admin</a>
   </div>
 
   <!-- Filters -->
@@ -214,7 +211,7 @@
               id="season"
               class="rounded-md border px-3 py-2 text-sm"
               value={selectedSeason}
-              on:change={handleSeasonChange}
+              onchange={handleSeasonChange}
             >
               <option value="2026">2026</option>
               <option value="2027">2027</option>
@@ -229,7 +226,7 @@
               id="tournament"
               class="rounded-md border px-3 py-2 text-sm min-w-[200px]"
               value={selectedTournamentId}
-              on:change={handleTournamentChange}
+              onchange={handleTournamentChange}
             >
               {#each tournaments as t}
                 <option value={t.id}>{t.name}</option>
@@ -288,9 +285,12 @@
             <span class="text-xs px-2 py-1 rounded border {getStatusColor(selectedGroup.status || 'pending')}">
               {getStatusLabel(selectedGroup.status || 'pending')}
             </span>
-            <Button variant="outline" size="sm" on:click={() => goto(`/scoring?season=${selectedSeason}&tournament=${selectedTournamentId}`)}>
+            <button 
+              class="px-3 py-2 border rounded-md text-sm hover:bg-gray-100 transition"
+              onclick={() => goto(`/scoring?season=${selectedSeason}&tournament=${selectedTournamentId}`)}
+            >
               Change Group
-            </Button>
+            </button>
           </div>
         </div>
       </CardHeader>
@@ -310,7 +310,7 @@
                 <button
                   class="flex-1 h-3 rounded-full transition-colors text-[10px] flex items-center justify-center {hole < currentHole ? 'bg-emerald-500 text-white' : hole === currentHole ? 'bg-emerald-300' : 'bg-gray-200'}"
                   title="{courseData?.baseHoleDistances ? courseData.baseHoleDistances[hole - 1] + ' yards' : 'Hole ' + hole}"
-                  on:click={() => goToHole(hole)}
+                  onclick={() => goToHole(hole)}
                 >
                   {hole}
                 </button>
@@ -326,7 +326,7 @@
                 <button
                   class="flex-1 h-3 rounded-full transition-colors text-[10px] flex items-center justify-center {hole < currentHole ? 'bg-emerald-500 text-white' : hole === currentHole ? 'bg-emerald-300' : 'bg-gray-200'}"
                   title="{courseData?.baseHoleDistances ? courseData.baseHoleDistances[hole - 10] + ' yards' : 'Hole ' + hole}"
-                  on:click={() => goToHole(hole)}
+                  onclick={() => goToHole(hole)}
                 >
                   {hole}
                 </button>
@@ -357,29 +357,25 @@
 
               <!-- Score Controls -->
               <div class="flex items-center justify-center gap-4">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  class="w-12 h-12 text-xl"
-                  on:click={() => adjustScore(player.id, -1)}
+                <button 
+                  class="bg-white hover:bg-gray-100 w-12 h-12 text-xl border rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  onclick={() => adjustScore(player.id, -1)}
                   disabled={playerScore <= -3}
                 >
-                  -
-                </Button>
+                  −
+                </button>
                 
                 <div class="w-16 h-16 flex items-center justify-center rounded-full border-4 border-gray-300 bg-white">
                   <span class="text-2xl font-bold">{formatScore(playerScore)}</span>
                 </div>
                 
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  class="w-12 h-12 text-xl"
-                  on:click={() => adjustScore(player.id, 1)}
+                <button 
+                  class="bg-white hover:bg-gray-100 w-12 h-12 text-xl border rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  onclick={() => adjustScore(player.id, 1)}
                   disabled={playerScore >= 10}
                 >
                   +
-                </Button>
+                </button>
               </div>
 
               <p class="text-xs text-center text-muted-foreground">
@@ -391,20 +387,21 @@
 
         <!-- Navigation -->
         <div class="flex justify-between pt-4">
-          <Button 
-            variant="outline" 
-            on:click={prevHole}
+          <button 
+            class="px-4 py-2 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+            onclick={prevHole}
             disabled={currentHole === 1}
           >
             ← Hole {currentHole - 1}
-          </Button>
+          </button>
           
-          <Button 
-            on:click={saveHoleScores}
+          <button 
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition"
+            onclick={saveHoleScores}
             disabled={saving}
           >
             {saving ? "Saving..." : currentHole === 18 ? "Save & Finish" : `Save & Hole ${currentHole + 1} →`}
-          </Button>
+          </button>
         </div>
 
         <!-- Scorecard Summary -->
@@ -440,7 +437,7 @@
                       {@const isCurrentHole = currentHole === hole}
                       <td 
                         class="text-center px-1 py-1 cursor-pointer hover:bg-muted/50 rounded text-xs {isCurrentHole ? 'bg-emerald-100 font-bold' : ''} {hole === 9 ? 'border-r' : ''}"
-                        on:click={() => goToHole(hole)}
+                        onclick={() => goToHole(hole)}
                       >
                         {score !== undefined ? formatScore(score) : "-"}
                       </td>
@@ -458,22 +455,21 @@
         <!-- Status Actions -->
         {#if allScoresEntered && selectedGroup.status !== "complete"}
           <div class="pt-4 border-t">
-            <Button 
-              class="w-full" 
-              on:click={() => updateStatus("complete")}
+            <button 
+              class="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md transition"
+              onclick={() => updateStatus("complete")}
             >
               Mark Group as Complete
-            </Button>
+            </button>
           </div>
         {:else if selectedGroup.status !== "in_progress" && selectedGroup.status !== "complete"}
           <div class="pt-4 border-t">
-            <Button 
-              variant="outline"
-              class="w-full" 
-              on:click={() => updateStatus("in_progress")}
+            <button 
+              class="w-full px-4 py-2 border rounded-md hover:bg-gray-100 transition"
+              onclick={() => updateStatus("in_progress")}
             >
               Start Scoring (Mark In Progress)
-            </Button>
+            </button>
           </div>
         {/if}
       </CardContent>
