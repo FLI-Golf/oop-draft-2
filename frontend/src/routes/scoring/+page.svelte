@@ -92,7 +92,7 @@
   function adjustScore(playerId: string, delta: number) {
     const key = `${playerId}-${currentHole}`;
     const current = localScores.get(key) ?? 0;
-    const newScore = Math.max(-3, Math.min(10, current + delta));
+    const newScore = Math.max(-2, Math.min(10, current + delta)); // Min -2 (eagle on par 3)
     // Create new Map to trigger Svelte 5 reactivity
     const newScores = new Map(localScores);
     newScores.set(key, newScore);
@@ -369,6 +369,9 @@
         <!-- All Players Scoring -->
         <div class="grid gap-4 sm:grid-cols-2">
           {#each players as player (player.id)}
+            {@const score = getPlayerScore(player.id)}
+            {@const bgColor = score === -2 ? 'bg-emerald-600 border-emerald-700' : score === -1 ? 'bg-emerald-400 border-emerald-500' : score === 1 ? 'bg-red-400 border-red-500' : score === 2 ? 'bg-red-500 border-red-600' : score >= 3 ? 'bg-red-700 border-red-800' : 'bg-white border-gray-300'}
+            {@const textColor = score !== 0 ? 'text-white' : 'text-gray-900'}
             <div class="rounded-lg border p-4 space-y-3">
               <div class="text-center">
                 <h3 class="font-semibold">{player.name}</h3>
@@ -380,26 +383,26 @@
                 <button 
                   class="bg-white hover:bg-gray-100 w-12 h-12 text-xl border rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition"
                   onclick={() => adjustScore(player.id, -1)}
-                  disabled={getPlayerScore(player.id) <= -3}
+                  disabled={score <= -2}
                 >
                   −
                 </button>
                 
-                <div class="w-16 h-16 flex items-center justify-center rounded-full border-4 border-gray-300 bg-white">
-                  <span class="text-2xl font-bold">{formatScore(getPlayerScore(player.id))}</span>
+                <div class="w-16 h-16 flex items-center justify-center rounded-full border-4 {bgColor} transition-colors">
+                  <span class="text-2xl font-bold {textColor}">{formatScore(score)}</span>
                 </div>
                 
                 <button 
                   class="bg-white hover:bg-gray-100 w-12 h-12 text-xl border rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition"
                   onclick={() => adjustScore(player.id, 1)}
-                  disabled={getPlayerScore(player.id) >= 10}
+                  disabled={score >= 10}
                 >
                   +
                 </button>
               </div>
 
               <p class="text-xs text-center text-muted-foreground">
-                {getPlayerScore(player.id) === 0 ? "Par" : getPlayerScore(player.id) < 0 ? `${Math.abs(getPlayerScore(player.id))} under` : `${getPlayerScore(player.id)} over`}
+                {score === 0 ? "Par" : score < 0 ? `${Math.abs(score)} under` : `${score} over`}
               </p>
             </div>
           {/each}
@@ -446,24 +449,51 @@
                   {/each}
                   <th></th>
                 </tr>
+                {#if courseData?.baseHoleDistances && courseData.baseHoleDistances.length === 9}
+                  <tr class="border-b bg-gray-50">
+                    <th class="text-left py-1 pr-4 sticky left-0 bg-gray-50 text-xs font-normal text-muted-foreground">Yards</th>
+                    {#each courseData.baseHoleDistances as distance, i}
+                      <th class="text-center px-1 py-1 text-xs font-normal text-muted-foreground {i === 8 ? 'border-r' : ''}">{distance}</th>
+                    {/each}
+                    {#each courseData.baseHoleDistances as distance}
+                      <th class="text-center px-1 py-1 text-xs font-normal text-muted-foreground">{distance}</th>
+                    {/each}
+                    <th></th>
+                  </tr>
+                  <tr class="border-b bg-blue-50">
+                    <th class="text-left py-1 pr-4 sticky left-0 bg-blue-50 text-xs font-normal text-blue-700">Par</th>
+                    {#each Array.from({ length: 9 }) as _, i}
+                      <th class="text-center px-1 py-1 text-xs font-normal text-blue-700 {i === 8 ? 'border-r' : ''}">3</th>
+                    {/each}
+                    {#each Array.from({ length: 9 }) as _}
+                      <th class="text-center px-1 py-1 text-xs font-normal text-blue-700">3</th>
+                    {/each}
+                    <th class="text-center px-1 py-1 text-xs font-semibold text-blue-700">54</th>
+                  </tr>
+                {/if}
               </thead>
               <tbody>
                 {#each players as player}
+                  {@const total = getPlayerTotal(player.id)}
+                  {@const totalBg = total <= -4 ? 'bg-emerald-600' : total <= -2 ? 'bg-emerald-500' : total === -1 ? 'bg-emerald-400' : total === 1 ? 'bg-red-400' : total <= 3 ? 'bg-red-500' : total > 3 ? 'bg-red-700' : 'bg-gray-200'}
+                  {@const totalText = total !== 0 ? 'text-white' : 'text-gray-900'}
                   <tr class="border-b">
                     <td class="py-2 pr-2 font-medium text-xs sticky left-0 bg-white">{player.name.split(' ')[0]}</td>
                     {#each Array.from({ length: 18 }, (_, i) => i + 1) as hole}
                       {@const scoreKey = `${player.id}-${hole}`}
                       {@const score = localScores.get(scoreKey)}
                       {@const isCurrentHole = currentHole === hole}
+                      {@const cellBg = score !== undefined ? (score === -2 ? 'bg-emerald-200' : score === -1 ? 'bg-emerald-100' : score === 1 ? 'bg-red-100' : score === 2 ? 'bg-red-200' : score >= 3 ? 'bg-red-300' : 'bg-gray-50') : ''}
+                      {@const cellText = score !== undefined ? (score === -2 ? 'text-emerald-800 font-bold' : score === -1 ? 'text-emerald-700 font-semibold' : score === 1 ? 'text-red-700 font-semibold' : score >= 2 ? 'text-red-800 font-bold' : 'text-gray-700') : ''}
                       <td 
-                        class="text-center px-1 py-1 cursor-pointer hover:bg-muted/50 rounded text-xs {isCurrentHole ? 'bg-emerald-100 font-bold' : ''} {hole === 9 ? 'border-r' : ''}"
+                        class="text-center px-1 py-1 cursor-pointer hover:opacity-80 rounded text-xs {isCurrentHole ? 'ring-2 ring-emerald-500 font-bold' : ''} {hole === 9 ? 'border-r' : ''} {cellBg} {cellText} transition-colors"
                         onclick={() => goToHole(hole)}
                       >
                         {score !== undefined ? formatScore(score) : "-"}
                       </td>
                     {/each}
-                    <td class="text-center px-2 py-2 font-bold text-sm">
-                      {formatScore(getPlayerTotal(player.id))}
+                    <td class="text-center px-2 py-2 font-bold text-sm {totalBg} {totalText}">
+                      {formatScore(total)}
                     </td>
                   </tr>
                 {/each}
