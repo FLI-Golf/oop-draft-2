@@ -14,6 +14,7 @@
   $: selectedSeason = data.selectedSeason;
   $: selectedTournamentId = data.selectedTournamentId;
   $: selectedGroupId = data.selectedGroupId;
+  $: courseData = data.courseData;
 
   // Scoring state
   let currentHole = 1;
@@ -35,6 +36,17 @@
   // Get score for a specific player on current hole
   function getPlayerScore(playerId: string): number {
     return localScores.get(`${playerId}-${currentHole}`) ?? 0;
+  }
+
+  // Get distance for current hole
+  function getHoleDistance(): number | null {
+    if (!courseData?.baseHoleDistances || courseData.baseHoleDistances.length === 0) {
+      return null;
+    }
+    // For holes 1-9: use index 0-8
+    // For holes 10-18: use index 0-8 (same physical holes)
+    const courseHoleIndex = currentHole <= 9 ? currentHole - 1 : currentHole - 10;
+    return courseData.baseHoleDistances[courseHoleIndex] ?? null;
   }
 
   // Total holes (9-hole course played twice: front 1-9, back 10-18)
@@ -297,6 +309,7 @@
               {#each Array.from({ length: 9 }, (_, i) => i + 1) as hole}
                 <button
                   class="flex-1 h-3 rounded-full transition-colors text-[10px] flex items-center justify-center {hole < currentHole ? 'bg-emerald-500 text-white' : hole === currentHole ? 'bg-emerald-300' : 'bg-gray-200'}"
+                  title="{courseData?.baseHoleDistances ? courseData.baseHoleDistances[hole - 1] + ' yards' : 'Hole ' + hole}"
                   on:click={() => goToHole(hole)}
                 >
                   {hole}
@@ -312,6 +325,7 @@
               {#each Array.from({ length: 9 }, (_, i) => i + 10) as hole}
                 <button
                   class="flex-1 h-3 rounded-full transition-colors text-[10px] flex items-center justify-center {hole < currentHole ? 'bg-emerald-500 text-white' : hole === currentHole ? 'bg-emerald-300' : 'bg-gray-200'}"
+                  title="{courseData?.baseHoleDistances ? courseData.baseHoleDistances[hole - 10] + ' yards' : 'Hole ' + hole}"
                   on:click={() => goToHole(hole)}
                 >
                   {hole}
@@ -325,6 +339,9 @@
         <div class="text-center">
           <p class="text-sm text-muted-foreground">{isFrontNine ? 'Front 9' : 'Back 9'} - Course Hole {courseHole}</p>
           <h2 class="text-3xl font-bold">Hole {displayHole}</h2>
+          {#if getHoleDistance() !== null}
+            <p class="text-lg font-semibold text-emerald-600">{getHoleDistance()} yards</p>
+          {/if}
           <p class="text-sm text-muted-foreground">Enter scores for all players</p>
         </div>
 
