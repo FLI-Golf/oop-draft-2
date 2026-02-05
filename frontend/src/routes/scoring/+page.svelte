@@ -3,38 +3,42 @@
   import { enhance } from "$app/forms";
   import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
 
-  export let data;
+  // Svelte 5 runes mode - use $props() instead of export let
+  let { data } = $props();
 
-  $: tournaments = data.tournaments ?? [];
-  $: groups = data.groups ?? [];
-  $: selectedGroup = data.selectedGroup;
-  $: scores = data.scores ?? [];
-  $: players = data.players ?? [];
-  $: selectedSeason = data.selectedSeason;
-  $: selectedTournamentId = data.selectedTournamentId;
-  $: selectedGroupId = data.selectedGroupId;
-  $: courseData = data.courseData;
+  // Derived values from props - using $derived for Svelte 5
+  let tournaments = $derived(data.tournaments ?? []);
+  let groups = $derived(data.groups ?? []);
+  let selectedGroup = $derived(data.selectedGroup);
+  let scores = $derived(data.scores ?? []);
+  let players = $derived(data.players ?? []);
+  let selectedSeason = $derived(data.selectedSeason);
+  let selectedTournamentId = $derived(data.selectedTournamentId);
+  let selectedGroupId = $derived(data.selectedGroupId);
+  let courseData = $derived(data.courseData);
 
-  // Scoring state
-  let currentHole = 1;
-  let saving = false;
+  // Scoring state - using Svelte 5 $state rune
+  let currentHole = $state(1);
+  let saving = $state(false);
 
   // Build scores map for quick lookup: playerId-hole -> score
-  $: scoresMap = new Map(scores.map(s => [`${s.player}-${s.hole}`, s.score]));
+  let scoresMap = $derived(new Map(scores.map(s => [`${s.player}-${s.hole}`, s.score])));
 
-  // Local scores for current session (before saving)
-  let localScores: Map<string, number> = new Map();
+  // Local scores for current session (before saving) - using $state for reactivity
+  let localScores = $state<Map<string, number>>(new Map());
 
-  // Initialize local scores from server data
-  $: {
+  // Initialize local scores from server data - using $effect for side effects
+  $effect(() => {
     if (scores.length > 0) {
       localScores = new Map(scores.map(s => [`${s.player}-${s.hole}`, s.score]));
     }
-  }
+  });
 
-  // Create reactive score lookup for current hole - this will update whenever localScores or currentHole changes
-  $: currentHoleScores = new Map(
-    players.map(p => [p.id, localScores.get(`${p.id}-${currentHole}`) ?? 0])
+  // Create reactive score lookup for current hole - using $derived for Svelte 5
+  let currentHoleScores = $derived(
+    new Map(
+      players.map(p => [p.id, localScores.get(`${p.id}-${currentHole}`) ?? 0])
+    )
   );
 
   // Get score for a specific player on current hole
@@ -54,20 +58,22 @@
   }
 
   // Total holes (9-hole course played twice: front 1-9, back 10-18)
-  $: totalHoles = 18;
+  let totalHoles = $derived(18);
   
-  // Determine if we're on front nine or back nine
-  $: isFrontNine = currentHole <= 9;
-  $: displayHole = currentHole; // 1-18
-  $: courseHole = currentHole <= 9 ? currentHole : currentHole - 9; // 1-9 (physical hole on course)
+  // Determine if we're on front nine or back nine - using $derived for Svelte 5
+  let isFrontNine = $derived(currentHole <= 9);
+  let displayHole = $derived(currentHole); // 1-18
+  let courseHole = $derived(currentHole <= 9 ? currentHole : currentHole - 9); // 1-9 (physical hole on course)
 
-  // Check if all scores are entered (18 holes)
-  $: allScoresEntered = players.length > 0 && 
+  // Check if all scores are entered (18 holes) - using $derived for Svelte 5
+  let allScoresEntered = $derived(
+    players.length > 0 && 
     players.every(p => 
       Array.from({ length: 18 }, (_, i) => i + 1).every(hole => 
         localScores.has(`${p.id}-${hole}`)
       )
-    );
+    )
+  );
 
   function formatTeeTime(time: string): string {
     if (!time) return "-";
@@ -87,8 +93,10 @@
     const key = `${playerId}-${currentHole}`;
     const current = localScores.get(key) ?? 0;
     const newScore = Math.max(-3, Math.min(10, current + delta));
-    localScores.set(key, newScore);
-    localScores = localScores; // Trigger reactivity by reassigning
+    // Create new Map to trigger Svelte 5 reactivity
+    const newScores = new Map(localScores);
+    newScores.set(key, newScore);
+    localScores = newScores;
   }
 
   async function saveHoleScores() {
@@ -184,16 +192,18 @@
     }
   }
 
-  // Calculate player total for display (18 holes)
-  $: playerTotals = new Map(
-    players.map(p => {
-      let total = 0;
-      for (let h = 1; h <= 18; h++) {
-        const score = localScores.get(`${p.id}-${h}`);
-        if (score !== undefined) total += score;
-      }
-      return [p.id, total];
-    })
+  // Calculate player total for display (18 holes) - using $derived for Svelte 5
+  let playerTotals = $derived(
+    new Map(
+      players.map(p => {
+        let total = 0;
+        for (let h = 1; h <= 18; h++) {
+          const score = localScores.get(`${p.id}-${h}`);
+          if (score !== undefined) total += score;
+        }
+        return [p.id, total];
+      })
+    )
   );
 
   function getPlayerTotal(playerId: string): number {
