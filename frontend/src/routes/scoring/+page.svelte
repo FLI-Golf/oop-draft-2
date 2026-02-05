@@ -18,7 +18,6 @@
   // Scoring state
   let currentHole = 1;
   let saving = false;
-  let scoreUpdateTrigger = 0; // Counter to force reactivity
 
   // Build scores map for quick lookup: playerId-hole -> score
   $: scoresMap = new Map(scores.map(s => [`${s.player}-${s.hole}`, s.score]));
@@ -33,10 +32,14 @@
     }
   }
 
+  // Create reactive score lookup for current hole - this will update whenever localScores or currentHole changes
+  $: currentHoleScores = new Map(
+    players.map(p => [p.id, localScores.get(`${p.id}-${currentHole}`) ?? 0])
+  );
+
   // Get score for a specific player on current hole
   function getPlayerScore(playerId: string): number {
-    scoreUpdateTrigger; // Access counter to make this reactive
-    return localScores.get(`${playerId}-${currentHole}`) ?? 0;
+    return currentHoleScores.get(playerId) ?? 0;
   }
 
   // Get distance for current hole
@@ -84,8 +87,8 @@
     const key = `${playerId}-${currentHole}`;
     const current = localScores.get(key) ?? 0;
     const newScore = Math.max(-3, Math.min(10, current + delta));
-    localScores = new Map(localScores.set(key, newScore)); // create new Map to trigger reactivity
-    scoreUpdateTrigger++; // Force re-render
+    localScores.set(key, newScore);
+    localScores = localScores; // Trigger reactivity by reassigning
   }
 
   async function saveHoleScores() {
@@ -182,14 +185,19 @@
   }
 
   // Calculate player total for display (18 holes)
+  $: playerTotals = new Map(
+    players.map(p => {
+      let total = 0;
+      for (let h = 1; h <= 18; h++) {
+        const score = localScores.get(`${p.id}-${h}`);
+        if (score !== undefined) total += score;
+      }
+      return [p.id, total];
+    })
+  );
+
   function getPlayerTotal(playerId: string): number {
-    scoreUpdateTrigger; // Access counter to make this reactive
-    let total = 0;
-    for (let h = 1; h <= 18; h++) {
-      const score = localScores.get(`${playerId}-${h}`);
-      if (score !== undefined) total += score;
-    }
-    return total;
+    return playerTotals.get(playerId) ?? 0;
   }
 </script>
 
