@@ -347,8 +347,7 @@
 
         <!-- All Players Scoring -->
         <div class="grid gap-4 sm:grid-cols-2">
-          {#each players as player}
-            {@const playerScore = getPlayerScore(player.id)}
+          {#each players as player (player.id)}
             <div class="rounded-lg border p-4 space-y-3">
               <div class="text-center">
                 <h3 class="font-semibold">{player.name}</h3>
@@ -360,26 +359,28 @@
                 <button 
                   class="bg-white hover:bg-gray-100 w-12 h-12 text-xl border rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition"
                   onclick={() => adjustScore(player.id, -1)}
-                  disabled={playerScore <= -3}
+                  disabled={getPlayerScore(player.id) <= -3}
                 >
                   −
                 </button>
                 
                 <div class="w-16 h-16 flex items-center justify-center rounded-full border-4 border-gray-300 bg-white">
-                  <span class="text-2xl font-bold">{formatScore(playerScore)}</span>
+                  <span class="text-2xl font-bold">{formatScore(getPlayerScore(player.id))}</span>
                 </div>
                 
                 <button 
                   class="bg-white hover:bg-gray-100 w-12 h-12 text-xl border rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition"
                   onclick={() => adjustScore(player.id, 1)}
-                  disabled={playerScore >= 10}
+                  disabled={getPlayerScore(player.id) >= 10}
                 >
                   +
                 </button>
               </div>
 
               <p class="text-xs text-center text-muted-foreground">
-                {playerScore === 0 ? "Par" : playerScore < 0 ? `${Math.abs(playerScore)} under` : `${playerScore} over`}
+                {#key localScores}
+                  {getPlayerScore(player.id) === 0 ? "Par" : getPlayerScore(player.id) < 0 ? `${Math.abs(getPlayerScore(player.id))} under` : `${getPlayerScore(player.id)} over`}
+                {/key}
               </p>
             </div>
           {/each}
