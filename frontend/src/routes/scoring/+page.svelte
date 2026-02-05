@@ -18,6 +18,7 @@
   // Scoring state
   let currentHole = 1;
   let saving = false;
+  let scoreUpdateTrigger = 0; // Counter to force reactivity
 
   // Build scores map for quick lookup: playerId-hole -> score
   $: scoresMap = new Map(scores.map(s => [`${s.player}-${s.hole}`, s.score]));
@@ -34,6 +35,7 @@
 
   // Get score for a specific player on current hole
   function getPlayerScore(playerId: string): number {
+    scoreUpdateTrigger; // Access counter to make this reactive
     return localScores.get(`${playerId}-${currentHole}`) ?? 0;
   }
 
@@ -82,8 +84,8 @@
     const key = `${playerId}-${currentHole}`;
     const current = localScores.get(key) ?? 0;
     const newScore = Math.max(-3, Math.min(10, current + delta));
-    localScores.set(key, newScore);
-    localScores = localScores; // trigger reactivity
+    localScores = new Map(localScores.set(key, newScore)); // create new Map to trigger reactivity
+    scoreUpdateTrigger++; // Force re-render
   }
 
   async function saveHoleScores() {
@@ -181,6 +183,7 @@
 
   // Calculate player total for display (18 holes)
   function getPlayerTotal(playerId: string): number {
+    scoreUpdateTrigger; // Access counter to make this reactive
     let total = 0;
     for (let h = 1; h <= 18; h++) {
       const score = localScores.get(`${playerId}-${h}`);
@@ -378,9 +381,7 @@
               </div>
 
               <p class="text-xs text-center text-muted-foreground">
-                {#key localScores}
-                  {getPlayerScore(player.id) === 0 ? "Par" : getPlayerScore(player.id) < 0 ? `${Math.abs(getPlayerScore(player.id))} under` : `${getPlayerScore(player.id)} over`}
-                {/key}
+                {getPlayerScore(player.id) === 0 ? "Par" : getPlayerScore(player.id) < 0 ? `${Math.abs(getPlayerScore(player.id))} under` : `${getPlayerScore(player.id)} over`}
               </p>
             </div>
           {/each}
