@@ -17,7 +17,7 @@
 
   // Multi-step form state
   let currentStep = 1;
-  const totalSteps = 6;
+  const totalSteps = 4;
 
   function nextStep() {
     if (currentStep < totalSteps) currentStep++;
@@ -75,8 +75,8 @@
         bv = (b.expand?.course?.name ?? b.course ?? "").toLowerCase();
         break;
       case "season":
-        av = a.season ?? "";
-        bv = b.season ?? "";
+        av = a.expand?.seasonId?.year ?? "";
+        bv = b.expand?.seasonId?.year ?? "";
         break;
     }
 
@@ -98,8 +98,11 @@
       name: string;
       date: string;
       course: string;
-      season?: "2026" | "2027" | "2028" | "2029";
-      expand?: { course?: { name: string } };
+      seasonId?: string;
+      expand?: { 
+        course?: { name: string };
+        seasonId?: { id: string; year: string; active: boolean };
+      };
     }[];
     tournamentCountsBySeason: Record<string, number>;
     seasonSettingsMap: Record<string, SeasonSettings>;
@@ -124,21 +127,27 @@
     name: string;
     date: string;
     created: boolean;
+    skip: boolean;
   };
 
   let tournamentForms: TournamentForm[] = [
-    { name: "FLI Championship 1", date: "2026-02-15", created: false },
-    { name: "FLI Championship 2", date: "2026-03-17", created: false },
-    { name: "FLI Championship 3", date: "2026-04-16", created: false },
-    { name: "FLI Championship 4", date: "2026-05-16", created: false },
-    { name: "FLI Championship 5", date: "2026-06-15", created: false },
-    { name: "FLI Championship 6", date: "2026-07-15", created: false },
+    { name: "FLI Championship 1", date: "2026-02-15", created: false, skip: false },
+    { name: "FLI Championship 2", date: "2026-03-17", created: false, skip: false },
+    { name: "FLI Championship 3", date: "2026-04-16", created: false, skip: false },
+    { name: "FLI Championship 4", date: "2026-05-16", created: false, skip: false },
+    { name: "FLI Championship 5", date: "2026-06-15", created: false, skip: false },
+    { name: "FLI Championship 6", date: "2026-07-15", created: false, skip: false },
   ];
 
   function markTournamentCreated(index: number) {
     tournamentForms[index].created = true;
   }
 
+  function toggleTournamentSkip(index: number) {
+    tournamentForms[index].skip = !tournamentForms[index].skip;
+  }
+
+  $: allTournamentsProcessed = tournamentForms.every(t => t.created || t.skip);
   $: allTournamentsCreated = tournamentForms.every(t => t.created);
   $: createdCount = tournamentForms.filter(t => t.created).length;
   $: uncreatedTournaments = tournamentForms.filter(t => !t.created);
@@ -223,9 +232,7 @@
     "Prize Pool",
     "Course",
     "Tournament",
-    "Settings",
-    "Groups",
-    "Dashboard"
+    "Settings"
   ];
 </script>
 
@@ -509,13 +516,13 @@
         </div>
 
         <p class="text-sm text-muted-foreground">
-          Progress: {createdCount} of 6 tournaments created
+          Progress: {createdCount} of 6 tournaments created (Skip any with checkbox)
         </p>
 
         <!-- 6 Tournament Forms -->
         <div class="grid gap-4">
           {#each tournamentForms as form, i}
-            <div class="p-4 rounded-lg border {form.created ? 'bg-emerald-50 border-emerald-300' : 'bg-white'}">
+            <div class="p-4 rounded-lg border {form.created ? 'bg-emerald-50 border-emerald-300' : form.skip ? 'bg-gray-50 border-gray-300' : 'bg-white'}">
               <form
                 method="POST"
                 action="?/createTournament"
@@ -526,7 +533,7 @@
                       status = `Tournament ${i + 1} created ✅`;
                       error = "";
                       await update();
-                      if (allTournamentsCreated) {
+                      if (allTournamentsProcessed) {
                         nextStep();
                       }
                       return;
@@ -555,7 +562,7 @@
                       <Input 
                         name="name" 
                         bind:value={form.name}
-                        disabled={form.created}
+                        disabled={form.created || form.skip}
                       />
                     </div>
 
@@ -565,14 +572,28 @@
                         name="date" 
                         type="date" 
                         bind:value={form.date}
-                        disabled={form.created}
+                        disabled={form.created || form.skip}
                       />
                     </div>
                   </div>
 
+                  <div class="flex items-center gap-2">
+                    <label class="flex items-center gap-2 cursor-pointer" title="Skip creating this tournament">
+                      <input 
+                        type="checkbox" 
+                        bind:checked={form.skip}
+                        disabled={form.created}
+                        class="w-4 h-4"
+                      />
+                      <span class="text-xs text-muted-foreground">Skip</span>
+                    </label>
+                  </div>
+
                   <div class="w-24">
                     {#if form.created}
-                      <span class="text-emerald-600 font-medium">✓ Created</span>
+                      <span class="text-emerald-600 font-medium text-sm">✓ Created</span>
+                    {:else if form.skip}
+                      <span class="text-gray-500 font-medium text-sm">Skipped</span>
                     {:else}
                       <Button type="submit" size="sm" disabled={!selectedCourseId}>
                         Create
@@ -613,7 +634,7 @@
                     <TableCell>{t.name}</TableCell>
                     <TableCell>{new Date(t.date).toDateString()}</TableCell>
                     <TableCell>{t.expand?.course?.name ?? t.course}</TableCell>
-                    <TableCell>{t.season ?? "-"}</TableCell>
+                    <TableCell>{t.expand?.seasonId?.year ?? "-"}</TableCell>
                     <TableCell class="text-right">
                       <a
                         href={`/tournaments/${t.id}/settings`}
@@ -634,26 +655,55 @@
     </Card>
   {/if}
 
-  <!-- Step 4: Tournament Settings -->
+  <!-- Step 4: Tournament Settings & Summary -->
   {#if currentStep === 4}
     <Card>
       <CardHeader>
         <CardTitle>Step 4: Tournament Settings</CardTitle>
         <p class="text-sm text-muted-foreground">
-          Configure tee times, starting hole, and format for each tournament. Click the settings icon next to a tournament to configure.
+          Configuration complete! Your season schedule is set up and ready to use.
         </p>
       </CardHeader>
-      <CardContent class="space-y-4">
-        <div class="rounded-lg border border-emerald-500 bg-emerald-50 p-4">
-          <h3 class="font-semibold text-emerald-700">Default Settings Applied</h3>
-          <p class="mt-1 text-sm text-emerald-600">
-            All groups start at hole 1 with 10-minute intervals beginning at 8:00 AM.
-          </p>
+      <CardContent class="space-y-6">
+        <!-- Summary Box -->
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-6">
+          <h3 class="text-lg font-semibold text-emerald-900 mb-4">✅ Season Setup Complete</h3>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div>
+              <span class="text-sm text-emerald-700 font-medium">Prize Pool</span>
+              <p class="text-lg font-bold text-emerald-900">${(currentSeasonSettings?.prizePool / 1000000).toFixed(0)}M</p>
+            </div>
+            <div>
+              <span class="text-sm text-emerald-700 font-medium">Course</span>
+              <p class="text-lg font-bold text-emerald-900">{data.courses.find(c => c.id === selectedCourseId)?.name || "FLI Stadium"}</p>
+            </div>
+            <div>
+              <span class="text-sm text-emerald-700 font-medium">Tournaments Created</span>
+              <p class="text-lg font-bold text-emerald-900">{data.tournaments.length}</p>
+            </div>
+            <div>
+              <span class="text-sm text-emerald-700 font-medium">Season</span>
+              <p class="text-lg font-bold text-emerald-900">{season}</p>
+            </div>
+          </div>
         </div>
 
+        <!-- Default Settings -->
+        <div class="rounded-lg border border-emerald-500 bg-emerald-50 p-4">
+          <h4 class="font-semibold text-emerald-700 mb-2">Default Tournament Settings</h4>
+          <ul class="space-y-2 text-sm text-emerald-700">
+            <li>✓ Starting hole: 1</li>
+            <li>✓ Group intervals: 10 minutes</li>
+            <li>✓ First tee time: 8:00 AM</li>
+            <li>✓ Format: Stroke play</li>
+          </ul>
+          <p class="text-xs text-emerald-600 mt-3 italic">Click the ⚙️ icon on any tournament to customize these settings</p>
+        </div>
+
+        <!-- Configure Individual Tournaments -->
         {#if data.tournaments.length > 0}
-          <div class="mt-4">
-            <h4 class="text-sm font-medium mb-2">Configure Individual Tournaments</h4>
+          <div>
+            <h4 class="text-sm font-medium mb-3">Configure Individual Tournaments</h4>
             <div class="grid gap-2">
               {#each data.tournaments as t}
                 <a
@@ -669,125 +719,17 @@
               {/each}
             </div>
           </div>
-        {:else}
-          <p class="text-sm text-muted-foreground">No tournaments created yet. Go back to Step 3 to create tournaments.</p>
         {/if}
-      </CardContent>
-    </Card>
-  {/if}
 
-  <!-- Step 5: Create Groups -->
-  {#if currentStep === 5}
-    <Card>
-      <CardHeader>
-        <CardTitle>Step 5: Create Groups</CardTitle>
-        <p class="text-sm text-muted-foreground">
-          Organize teams into groups (2 teams per group). Groups are assigned tee times automatically.
-          Generate diverse matchups across all tournaments in a season (1-20 tournaments required).
-        </p>
-      </CardHeader>
-      <CardContent class="space-y-4">
-        <form method="POST" action="?/generateGroups" use:enhance={() => {
-          return async ({ result, update }) => {
-            console.log("[Step 5] Form result:", result.type, result);
-            if (result.type === "success") {
-              status = "Groups generated for season ✅";
-              error = "";
-              await update();
-              nextStep();
-              return;
-            }
-            if (result.type === "failure") {
-              status = "";
-              error = (result.data as { error?: string })?.error ?? "Generation failed.";
-              return;
-            }
-            status = "";
-            error = result.type === "error" ? result.error?.message ?? "Unexpected error." : "";
-          };
-        }}>
-          <div class="flex items-center gap-4">
-            <div class="space-y-1">
-              <label class="text-xs text-muted-foreground" for="groupSeason">Season</label>
-              <select name="season" id="groupSeason" bind:value={groupSeasonSelect} class="rounded-md border px-3 py-2 text-sm" required>
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
-                <option value="2028">2028</option>
-                <option value="2029">2029</option>
-              </select>
-            </div>
-            <div class="flex items-end">
-              <Button type="submit" disabled={!isValidGroupCount} class="flex flex-col h-auto py-2">
-                <span>Generate Groups</span>
-                <span class="text-xs">({groupTournamentCount} tournament{groupTournamentCount !== 1 ? 's' : ''})</span>
-              </Button>
-            </div>
-          </div>
-          
-          {#if groupsAlreadyExist}
-            <div class="mt-4 rounded-md bg-emerald-50 p-3 text-sm text-emerald-700">
-              Groups already generated for {groupSeasonSelect}. <a href="/dashboard?season={groupSeasonSelect}" class="underline font-medium">View Dashboard</a>
-            </div>
-          {:else if groupTournamentCount === 0}
-            <p class="mt-4 text-sm text-amber-600">No tournaments for this season. Create tournaments first in Step 3.</p>
-          {:else if groupTournamentCount > 20}
-            <p class="mt-4 text-sm text-red-600">Too many tournaments ({groupTournamentCount}). Maximum is 20.</p>
-          {:else}
-            <p class="mt-4 text-sm text-muted-foreground">Ready to generate groups for {groupTournamentCount} tournament{groupTournamentCount !== 1 ? 's' : ''} in {groupSeasonSelect}.</p>
-          {/if}
-        </form>
-      </CardContent>
-    </Card>
-  {/if}
-
-  <!-- Step 6: Dashboard -->
-  {#if currentStep === 6}
-    <Card>
-      <CardHeader>
-        <CardTitle>Step 6: View Dashboard</CardTitle>
-        <p class="text-sm text-muted-foreground">
-          View tee sheets, groups, times, and starting holes for all tournaments. You can also access scoring and leaderboards from here.
-        </p>
-      </CardHeader>
-      <CardContent class="space-y-4">
-        <div class="grid gap-4 sm:grid-cols-2">
-          <a href="/dashboard" class="block">
-            <div class="rounded-lg border p-4 hover:bg-gray-50 transition">
-              <h3 class="font-semibold">Tournaments Dashboard</h3>
-              <p class="mt-1 text-sm text-muted-foreground">
-                View tee sheets, groups, times, and starting holes.
-              </p>
-              <Button variant="outline" size="sm" class="mt-3">View Dashboard</Button>
-            </div>
-          </a>
-
-          <a href="/scoring" class="block">
-            <div class="rounded-lg border p-4 hover:bg-gray-50 transition">
-              <h3 class="font-semibold">Live Scoring</h3>
-              <p class="mt-1 text-sm text-muted-foreground">
-                Scorekeepers enter scores hole-by-hole during the tournament.
-              </p>
-              <Button variant="outline" size="sm" class="mt-3">Enter Scores</Button>
-            </div>
-          </a>
-
-          <a href="/league" class="block">
-            <div class="rounded-lg border p-4 hover:bg-gray-50 transition">
-              <h3 class="font-semibold">League Standings</h3>
-              <p class="mt-1 text-sm text-muted-foreground">
-                View team standings and season progress.
-              </p>
-              <Button variant="outline" size="sm" class="mt-3">View League</Button>
-            </div>
-          </a>
-
-          <div class="rounded-lg border p-4 opacity-60">
-            <h3 class="font-semibold">Leaderboard</h3>
-            <p class="mt-1 text-sm text-muted-foreground">
-              Real-time leaderboard showing player standings and scores.
-            </p>
-            <p class="mt-3 text-xs text-muted-foreground italic">Coming soon</p>
-          </div>
+        <!-- Next Steps -->
+        <div class="rounded-lg border p-4 bg-blue-50">
+          <h4 class="font-semibold text-blue-900 mb-3">📋 Next Steps</h4>
+          <ul class="space-y-2 text-sm text-blue-800">
+            <li>• Visit <a href="/dashboard" class="underline font-semibold">Dashboard</a> to view tournament schedules and tee sheets</li>
+            <li>• Go to <a href="/scoring" class="underline font-semibold">Live Scoring</a> to enter scores during tournaments</li>
+            <li>• Check <a href="/league" class="underline font-semibold">League Standings</a> to track season progress</li>
+            <li>• Customize tournament settings by clicking ⚙️ on any tournament above</li>
+          </ul>
         </div>
       </CardContent>
     </Card>
@@ -798,7 +740,7 @@
     <Button
       variant="outline"
       onclick={prevStep}
-      disabled={currentStep === 1 || isCreatingAll}
+      disabled={currentStep === 1}
     >
       ← Previous
     </Button>
@@ -814,10 +756,16 @@
       >
         {isCreatingAll ? "Creating..." : `Create ${uncreatedTournaments.length} & Next →`}
       </Button>
+    {:else if currentStep === totalSteps}
+      <a href="/displays" class="inline-flex">
+        <Button variant="default">
+          Complete & View Displays ✓
+        </Button>
+      </a>
     {:else}
       <Button
         onclick={nextStep}
-        disabled={currentStep === totalSteps}
+        disabled={currentStep === totalSteps || (currentStep === 3 && !allTournamentsProcessed)}
       >
         Next →
       </Button>
