@@ -1,10 +1,31 @@
 <script lang="ts">
+  import { enhance } from "$app/forms";
   import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
   import { Button } from "$lib/components/ui/button";
+
+  export let data;
+  export let form;
+
+  let isGenerating = false;
+  let selectedSeason = "2026";
+  let status = "";
+  let error = "";
 </script>
 
 <div class="p-6">
   <div class="space-y-6">
+    <!-- Status Messages -->
+    {#if status}
+      <div class="rounded-md bg-emerald-50 p-4 text-emerald-700 border border-emerald-200">
+        <p class="font-medium">{status}</p>
+      </div>
+    {/if}
+    {#if error}
+      <div class="rounded-md bg-red-50 p-4 text-red-700 border border-red-200">
+        <p class="font-medium">{error}</p>
+      </div>
+    {/if}
+    
     <!-- Header -->
     <div class="flex items-start justify-between">
       <div class="space-y-1">
@@ -102,6 +123,64 @@
               View Playoffs
             </Button>
           </a>
+        </CardContent>
+      </Card>
+
+      <!-- Generate Groups -->
+      <Card class="hover:shadow-lg transition-shadow">
+        <CardHeader>
+          <CardTitle class="text-xl">👥 Generate Groups</CardTitle>
+        </CardHeader>
+        <CardContent class="space-y-3">
+          <p class="text-sm text-muted-foreground">
+            Generate player groups and tee times for tournaments in a selected season.
+          </p>
+          <form
+            method="POST"
+            action="?/generateGroups"
+            use:enhance={() => {
+              isGenerating = true;
+              return async ({ result, update }) => {
+                if (result.type === 'success') {
+                  status = (result.data as Record<string, any>)?.message || 'Groups generated successfully!';
+                  error = '';
+                } else if (result.type === 'failure') {
+                  status = '';
+                  error = (result.data as Record<string, any>)?.error || 'Failed to generate groups.';
+                } else if (result.type === 'error') {
+                  status = '';
+                  error = (result.error as Record<string, any>)?.message || 'An error occurred.';
+                }
+                isGenerating = false;
+                await update();
+              };
+            }}
+            class="space-y-3"
+          >
+            <div class="space-y-2">
+              <label class="text-xs text-muted-foreground" for="season-select-groups">
+                Select Season
+              </label>
+              <select
+                id="season-select-groups"
+                name="season"
+                bind:value={selectedSeason}
+                class="w-full rounded-md border px-3 py-2 text-sm"
+              >
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              disabled={isGenerating}
+              class="w-full inline-flex items-center justify-center rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-900 disabled:opacity-50"
+            >
+              {isGenerating ? 'Generating...' : 'Generate Groups'}
+            </button>
+          </form>
         </CardContent>
       </Card>
 

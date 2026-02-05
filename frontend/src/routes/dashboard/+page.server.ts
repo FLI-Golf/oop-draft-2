@@ -75,12 +75,26 @@ export const load: PageServerLoad = async ({ url }) => {
   const selectedSeason = url.searchParams.get("season") ?? "2026";
   const selectedTournamentId = url.searchParams.get("tournament");
 
-  // Get all tournaments for the season
-  const tournaments = await pb.collection("tournaments").getFullList<TournamentRecord>({
-    filter: `season="${selectedSeason}"`,
-    sort: "date",
-    expand: "course",
-  });
+  // Find season record by year, then get tournaments for that season
+  let tournaments: TournamentRecord[] = [];
+  try {
+    const seasons = await pb.collection("seasons").getFullList({
+      filter: `year="${selectedSeason}"`,
+      perPage: 1
+    });
+    const seasonRecord = seasons[0];
+    if (seasonRecord) {
+      tournaments = await pb.collection("tournaments").getFullList<TournamentRecord>({
+        filter: `seasonId="${seasonRecord.id}"`,
+        sort: "date",
+        expand: "course,seasonId",
+      });
+    }
+  } catch (e) {
+    // keep tournaments empty on error
+    console.warn("[dashboard/load] failed to load tournaments:", e);
+    tournaments = [];
+  }
 
   // Get all teams
   const teams = await pb.collection("teams").getFullList<TeamRecord>({

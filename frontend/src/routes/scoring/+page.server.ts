@@ -67,10 +67,24 @@ export const load: PageServerLoad = async ({ url }) => {
   const selectedGroupId = url.searchParams.get("group");
 
   // Get all tournaments for the season
-  const tournaments = await pb.collection("tournaments").getFullList<TournamentRecord>({
-    filter: `season="${selectedSeason}"`,
-    sort: "date"
-  });
+  let tournaments: TournamentRecord[] = [];
+  try {
+    const seasons = await pb.collection("seasons").getFullList({
+      filter: `year="${selectedSeason}"`,
+      perPage: 1
+    });
+    const seasonRecord = seasons[0];
+    if (seasonRecord) {
+      tournaments = await pb.collection("tournaments").getFullList<TournamentRecord>({
+        filter: `seasonId="${seasonRecord.id}"`,
+        sort: "date",
+        expand: "seasonId"
+      });
+    }
+  } catch (e) {
+    console.warn("[scoring/load] failed to load tournaments:", e);
+    tournaments = [];
+  }
 
   // Get groups for selected tournament
   const tournamentId = selectedTournamentId ?? tournaments[0]?.id;
