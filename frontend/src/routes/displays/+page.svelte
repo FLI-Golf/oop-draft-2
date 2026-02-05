@@ -58,17 +58,77 @@
         </CardContent>
       </Card>
 
-      <!-- Live Scoring -->
-      <Card class="hover:shadow-lg transition-shadow cursor-pointer">
+      <!-- Step 6: Generate Groups -->
+      <Card class="hover:shadow-lg transition-shadow border-emerald-300 bg-emerald-50">
         <CardHeader>
-          <CardTitle class="text-xl">🎯 Live Scoring</CardTitle>
+          <CardTitle class="text-xl">👥 Step 6: Generate Groups</CardTitle>
+          <p class="text-xs text-emerald-700 font-medium mt-1">Setup phase</p>
         </CardHeader>
         <CardContent class="space-y-3">
-          <p class="text-sm text-muted-foreground">
-            Enter scores hole-by-hole during tournaments. Track accuracy and scorecards in real-time.
+          <p class="text-sm text-emerald-800">
+            Generate player groups and tee times for tournaments. Groups and prize distributions are now created for your season data.
+          </p>
+          <form
+            method="POST"
+            action="?/generateGroups"
+            use:enhance={() => {
+              isGenerating = true;
+              return async ({ result, update }) => {
+                if (result.type === 'success') {
+                  status = (result.data as Record<string, any>)?.message || 'Groups generated successfully!';
+                  error = '';
+                } else if (result.type === 'failure') {
+                  status = '';
+                  error = (result.data as Record<string, any>)?.error || 'Failed to generate groups.';
+                } else if (result.type === 'error') {
+                  status = '';
+                  error = (result.error as Record<string, any>)?.message || 'An error occurred.';
+                }
+                isGenerating = false;
+                await update();
+              };
+            }}
+            class="space-y-3"
+          >
+            <div class="space-y-2">
+              <label class="text-xs text-emerald-700 font-medium" for="season-select-groups">
+                Select Season
+              </label>
+              <select
+                id="season-select-groups"
+                name="season"
+                bind:value={selectedSeason}
+                class="w-full rounded-md border border-emerald-300 px-3 py-2 text-sm"
+              >
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              disabled={isGenerating}
+              class="w-full inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {isGenerating ? 'Generating...' : 'Generate Groups'}
+            </button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <!-- Step 7: Live Scoring -->
+      <Card class="hover:shadow-lg transition-shadow border-blue-300 bg-blue-50">
+        <CardHeader>
+          <CardTitle class="text-xl">🎯 Step 7: Live Scoring</CardTitle>
+          <p class="text-xs text-blue-700 font-medium mt-1">Tournament phase</p>
+        </CardHeader>
+        <CardContent class="space-y-3">
+          <p class="text-sm text-blue-800">
+            With groups created and data ready, enter scores hole-by-hole during tournaments. Track accuracy and scorecards in real-time.
           </p>
           <a href="/scoring" class="block">
-            <Button class="w-full">
+            <Button class="w-full bg-blue-600 hover:bg-blue-700">
               Enter Scores
             </Button>
           </a>
@@ -126,64 +186,6 @@
         </CardContent>
       </Card>
 
-      <!-- Generate Groups -->
-      <Card class="hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <CardTitle class="text-xl">👥 Generate Groups</CardTitle>
-        </CardHeader>
-        <CardContent class="space-y-3">
-          <p class="text-sm text-muted-foreground">
-            Generate player groups and tee times for tournaments in a selected season.
-          </p>
-          <form
-            method="POST"
-            action="?/generateGroups"
-            use:enhance={() => {
-              isGenerating = true;
-              return async ({ result, update }) => {
-                if (result.type === 'success') {
-                  status = (result.data as Record<string, any>)?.message || 'Groups generated successfully!';
-                  error = '';
-                } else if (result.type === 'failure') {
-                  status = '';
-                  error = (result.data as Record<string, any>)?.error || 'Failed to generate groups.';
-                } else if (result.type === 'error') {
-                  status = '';
-                  error = (result.error as Record<string, any>)?.message || 'An error occurred.';
-                }
-                isGenerating = false;
-                await update();
-              };
-            }}
-            class="space-y-3"
-          >
-            <div class="space-y-2">
-              <label class="text-xs text-muted-foreground" for="season-select-groups">
-                Select Season
-              </label>
-              <select
-                id="season-select-groups"
-                name="season"
-                bind:value={selectedSeason}
-                class="w-full rounded-md border px-3 py-2 text-sm"
-              >
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
-                <option value="2028">2028</option>
-                <option value="2029">2029</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              disabled={isGenerating}
-              class="w-full inline-flex items-center justify-center rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-900 disabled:opacity-50"
-            >
-              {isGenerating ? 'Generating...' : 'Generate Groups'}
-            </button>
-          </form>
-        </CardContent>
-      </Card>
-
       <!-- Work Order -->
       <Card class="hover:shadow-lg transition-shadow cursor-pointer">
         <CardHeader>
@@ -205,14 +207,14 @@
     <!-- Quick Stats Section -->
     <Card class="border-blue-200 bg-blue-50">
       <CardHeader>
-        <CardTitle>🚀 Quick Tips</CardTitle>
+        <CardTitle>🚀 Tournament Setup Workflow</CardTitle>
       </CardHeader>
       <CardContent class="space-y-2 text-sm text-blue-900">
-        <p>• Start with <strong>Tournament Dashboard</strong> to see tee sheets and schedules</p>
-        <p>• Use <strong>Live Scoring</strong> during tournaments to record scores</p>
-        <p>• Check <strong>League Standings</strong> to track season progress and prize money</p>
-        <p>• Visit <strong>Tournament Management</strong> to customize settings for each tournament</p>
-        <p>• Configure <strong>Playoffs</strong> setup for end-of-season competitions</p>
+        <p><strong>Steps 1-5:</strong> Setup phase completed in Tournament Setup Wizard</p>
+        <p>✓ Prize Pool • ✓ Course • ✓ Tournaments • ✓ Summary • ✓ Data Ready</p>
+        <p class="mt-3 border-t border-blue-300 pt-3"><strong>Step 6:</strong> Generate Groups – Create player groups, tee times, and prize distributions</p>
+        <p><strong>Step 7:</strong> Live Scoring – Enter scores hole-by-hole during tournaments</p>
+        <p class="mt-3 border-t border-blue-300 pt-3">Then check <strong>League Standings</strong> to track progress and <strong>Tournament Dashboard</strong> for overview</p>
       </CardContent>
     </Card>
   </div>
