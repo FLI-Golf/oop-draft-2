@@ -244,6 +244,28 @@ This creates:
 
 ---
 
+## Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+pnpm test
+
+# Watch mode (re-run on changes)
+pnpm test:watch
+```
+
+The test suite includes comprehensive coverage for:
+- Scoring engines (Standard Stroke, CTH Distance, Sudden Death)
+- Playoff detection and workflow
+- Tournament service orchestration
+- Group and score validation
+
+See `shared/TEST_COVERAGE.md` for detailed test documentation.
+
+---
+
 ## Database & Migrations
 
 * All schema changes live in `backend/pb_migrations/`
