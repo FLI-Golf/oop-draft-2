@@ -74,6 +74,14 @@ func main() {
 	// Optional: serve ./pb_public if you have it
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		se.Router.GET("/{path...}", apis.Static(os.DirFS("./pb_public"), false))
+
+		// EXAMPLE: Custom scoring endpoint if you need Go performance
+		// se.Router.POST("/api/scoring/calculate", func(e *core.RequestEvent) error {
+		// 	// Custom high-performance scoring calculation
+		// 	// Access DB: e.App.DB()
+		// 	// Return JSON: return e.JSON(200, result)
+		// })
+
 		return se.Next()
 	})
 
