@@ -7,13 +7,6 @@ dist/
 build/
 .svelte-kit/
 
-# Environment files
-.env
-.env.*
-!.env.example
-backend/.env
-frontend/.env
-
 # PocketBase
 backend/pb_data/
 backend/pbapp/pb_data/
@@ -37,3 +30,4 @@ npm-debug.log*
 # Temp files
 /tmp/
 *.tmp
+pb_data/

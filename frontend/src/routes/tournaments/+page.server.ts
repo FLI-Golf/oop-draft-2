@@ -13,9 +13,10 @@ type TournamentRecord = {
   name: string;
   date: string;
   course: string;
-  season?: "2026" | "2027" | "2028" | "2029";
+  seasonId?: string;
   expand?: {
     course?: CourseRecord;
+    seasonId?: { id: string; year: string; active: boolean };
   };
 };
 
@@ -29,6 +30,8 @@ type GroupRecord = {
   tournament: string;
   team1: string;
   team2: string;
+  stage: "standard" | "playoff";
+  status: "pending" | "in_progress" | "complete";
 };
 
 type SeasonSettingsRecord = {
@@ -50,47 +53,60 @@ type TournamentSettingsRecord = {
 export const load: PageServerLoad = async () => {
   const pb = getServerPB();
 
-  const courses = await pb.collection("courses").getFullList<CourseRecord>({
-    sort: "name"
-  });
+  try {
+    console.log("[tournaments/load] Starting load...");
+    
+    const courses = await pb.collection("courses").getFullList<CourseRecord>({
+      sort: "name"
+    });
+    console.log("[tournaments/load] Loaded courses:", courses.length);
 
-  const tournaments = await pb.collection("tournaments").getFullList<TournamentRecord>({
-    sort: "-date",
-    expand: "course"
-  });
+    const tournaments = await pb.collection("tournaments").getFullList<TournamentRecord>({
+      sort: "-date",
+      expand: "course,seasonId"
+    });
+    console.log("[tournaments/load] Loaded tournaments:", tournaments.length);
 
-  // Count tournaments per season for the generate groups button
-  const tournamentCountsBySeason: Record<string, number> = {};
-  for (const t of tournaments) {
-    if (t.season) {
-      tournamentCountsBySeason[t.season] = (tournamentCountsBySeason[t.season] || 0) + 1;
+    // Count tournaments per season for the generate groups button
+    const tournamentCountsBySeason: Record<string, number> = {};
+    for (const t of tournaments) {
+      const seasonYear = t.expand?.seasonId?.year;
+      if (seasonYear) {
+        tournamentCountsBySeason[seasonYear] = (tournamentCountsBySeason[seasonYear] || 0) + 1;
+      }
     }
-  }
 
-  // Get season settings for prize pools
-  const seasonSettings = await pb.collection("season_settings").getFullList<SeasonSettingsRecord>({
-    sort: "season"
-  });
-  const seasonSettingsMap: Record<string, SeasonSettingsRecord> = {};
-  for (const s of seasonSettings) {
-    seasonSettingsMap[s.season] = s;
-  }
-
-  // Check which seasons already have groups generated
-  const groupsExistBySeason: Record<string, boolean> = {};
-  for (const season of ["2026", "2027", "2028", "2029"]) {
-    const seasonTournaments = tournaments.filter(t => t.season === season);
-    if (seasonTournaments.length > 0) {
-      const existingGroups = await pb.collection("groups").getList(1, 1, {
-        filter: seasonTournaments.map(t => `tournament="${t.id}"`).join(" || ")
-      });
-      groupsExistBySeason[season] = existingGroups.totalItems > 0;
-    } else {
-      groupsExistBySeason[season] = false;
+    // Get season settings for prize pools
+    const seasonSettings = await pb.collection("season_settings").getFullList<SeasonSettingsRecord>({
+      sort: "season"
+    });
+    console.log("[tournaments/load] Loaded season_settings:", seasonSettings.length);
+    
+    const seasonSettingsMap: Record<string, SeasonSettingsRecord> = {};
+    for (const s of seasonSettings) {
+      seasonSettingsMap[s.season] = s;
     }
-  }
 
-  return { courses, tournaments, tournamentCountsBySeason, seasonSettingsMap, groupsExistBySeason };
+    // Check which seasons already have groups generated
+    const groupsExistBySeason: Record<string, boolean> = {};
+    for (const season of ["2026", "2027", "2028", "2029"]) {
+      const seasonTournaments = tournaments.filter(t => t.expand?.seasonId?.year === season);
+      if (seasonTournaments.length > 0) {
+        const existingGroups = await pb.collection("groups").getList(1, 1, {
+          filter: seasonTournaments.map(t => `tournament="${t.id}"`).join(" || ")
+        });
+        groupsExistBySeason[season] = existingGroups.totalItems > 0;
+      } else {
+        groupsExistBySeason[season] = false;
+      }
+    }
+    console.log("[tournaments/load] Complete");
+
+    return { courses, tournaments, tournamentCountsBySeason, seasonSettingsMap, groupsExistBySeason };
+  } catch (error) {
+    console.error("[tournaments/load] Error:", error);
+    throw error;
+  }
 };
 
 export const actions: Actions = {
@@ -149,14 +165,96 @@ export const actions: Actions = {
     }
 
     try {
+      // Find or create season record
+      let seasonRecord;
+      try {
+        const seasons = await pb.collection("seasons").getFullList({
+          filter: `year="${season}"`,
+          perPage: 1
+        });
+        if (seasons.length > 0) {
+          seasonRecord = seasons[0];
+        } else {
+          seasonRecord = await pb.collection("seasons").create({
+            year: season,
+            active: true
+          });
+        }
+      } catch (e: any) {
+        return fail(e?.status || 500, {
+          error: "Failed to get/create season: " + (e?.message || "Unknown error")
+        });
+      }
+
       const created = await pb.collection("tournaments").create<TournamentRecord>({
         name,
         date,
         course,
-        season
+        seasonId: seasonRecord.id
       });
 
+      // Automatically create tournament_settings with defaults
+      try {
+        await pb.collection("tournament_settings").create({
+          tournament: created.id,
+          startingHole: 1,
+          intervalMinutes: 10,
+          firstTeeTime: "08:00",
+          format: "stroke"
+        });
+        console.log(`[createTournament] Created default settings for tournament ${created.id}`);
+      } catch (settingsError: any) {
+        console.warn(`[createTournament] Failed to create settings: ${settingsError?.message}`);
+        // Continue even if settings creation fails - tournament is still created
+      }
+
       return { success: true, createdId: created.id };
+    } catch (e: any) {
+      return fail(e?.status || 500, {
+        error: e?.message || "Create failed (rules/auth)."
+      });
+    }
+  },
+
+  generateSixTournaments: async ({ request }) => {
+    const pb = getServerPB();
+    const data = await request.formData();
+
+    const course = String(data.get("course") ?? "").trim();
+    const season = String(data.get("season") ?? "").trim();
+    const startDate = String(data.get("startDate") ?? "").trim();
+
+    const allowedSeasons = new Set(["2026", "2027", "2028", "2029"]);
+
+    if (!course || !season || !startDate) {
+      return fail(400, { error: "Missing required fields." });
+    }
+
+    if (!allowedSeasons.has(season)) {
+      return fail(400, { error: "Invalid season." });
+    }
+
+    try {
+      const baseDate = new Date(startDate);
+      const createdIds: string[] = [];
+
+      for (let i = 1; i <= 6; i++) {
+        const tournamentDate = new Date(baseDate);
+        tournamentDate.setDate(baseDate.getDate() + (i - 1) * 30);
+        
+        const dateStr = tournamentDate.toISOString().split("T")[0];
+        const name = `FLI Championship ${i}`;
+
+        const created = await pb.collection("tournaments").create<TournamentRecord>({
+          name,
+          date: dateStr,
+          course,
+          season
+        });
+        createdIds.push(created.id);
+      }
+
+      return { success: true, createdIds, message: `Created 6 tournaments for ${season}` };
     } catch (e: any) {
       return fail(e?.status || 500, {
         error: e?.message || "Create failed (rules/auth)."
@@ -219,9 +317,21 @@ export const actions: Actions = {
     }
 
     try {
+      // Find season record
+      const seasons = await pb.collection("seasons").getFullList({
+        filter: `year="${season}"`,
+        perPage: 1
+      });
+      
+      if (seasons.length === 0) {
+        return fail(400, { error: `Season ${season} not found.` });
+      }
+
+      const seasonRecord = seasons[0];
+
       // Get all tournaments for the season, sorted by date
       const tournaments = await pb.collection("tournaments").getFullList<TournamentRecord>({
-        filter: `season="${season}"`,
+        filter: `seasonId="${seasonRecord.id}"`,
         sort: "date"
       });
 
@@ -366,7 +476,9 @@ export const actions: Actions = {
             team2,
             groupNumber: g + 1,
             teeTime,
-            startingHole
+            startingHole,
+            stage: "standard",
+            status: "pending"
           });
         }
 

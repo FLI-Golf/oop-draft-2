@@ -8,6 +8,14 @@ type PlayerRecord = {
   gender: "male" | "female";
 };
 
+type TournamentSettingsRecord = {
+  id: string;
+  tournament: string;
+  format: string;
+  scoringModel?: string;
+  groupSize?: number;
+};
+
 type TeamRecord = {
   id: string;
   name: string;
@@ -19,11 +27,21 @@ type TeamRecord = {
   };
 };
 
+type CourseRecord = {
+  id: string;
+  name: string;
+  baseHoleDistances: number[];
+};
+
 type TournamentRecord = {
   id: string;
   name: string;
   date: string;
   season: string;
+  course?: string;
+  expand?: {
+    course?: CourseRecord;
+  };
 };
 
 type GroupRecord = {
@@ -34,6 +52,7 @@ type GroupRecord = {
   groupNumber: number;
   teeTime: string;
   startingHole: number;
+  stage: "standard" | "playoff";
   status: "pending" | "in_progress" | "complete" | "";
   expand?: {
     tournament?: TournamentRecord;
@@ -58,14 +77,29 @@ export const load: PageServerLoad = async ({ url }) => {
   const selectedGroupId = url.searchParams.get("group");
 
   // Get all tournaments for the season
-  const tournaments = await pb.collection("tournaments").getFullList<TournamentRecord>({
-    filter: `season="${selectedSeason}"`,
-    sort: "date"
-  });
+  let tournaments: TournamentRecord[] = [];
+  try {
+    const seasons = await pb.collection("seasons").getFullList({
+      filter: `year="${selectedSeason}"`,
+      perPage: 1
+    });
+    const seasonRecord = seasons[0];
+    if (seasonRecord) {
+      tournaments = await pb.collection("tournaments").getFullList<TournamentRecord>({
+        filter: `seasonId="${seasonRecord.id}"`,
+        sort: "date",
+        expand: "seasonId,course"
+      });
+    }
+  } catch (e) {
+    console.warn("[scoring/load] failed to load tournaments:", e);
+    tournaments = [];
+  }
 
   // Get groups for selected tournament
   const tournamentId = selectedTournamentId ?? tournaments[0]?.id;
   let groups: GroupRecord[] = [];
+  let courseData: CourseRecord | null = null;
   
   if (tournamentId) {
     groups = await pb.collection("groups").getFullList<GroupRecord>({
@@ -73,6 +107,12 @@ export const load: PageServerLoad = async ({ url }) => {
       sort: "groupNumber",
       expand: "tournament,team1,team2,team1.malePlayer,team1.femalePlayer,team2.malePlayer,team2.femalePlayer"
     });
+
+    // Get course data for the selected tournament
+    const selectedTournament = tournaments.find(t => t.id === tournamentId);
+    if (selectedTournament?.expand?.course) {
+      courseData = selectedTournament.expand.course;
+    }
   }
 
   // Get selected group details and scores
@@ -109,7 +149,8 @@ export const load: PageServerLoad = async ({ url }) => {
     players,
     selectedSeason,
     selectedTournamentId: tournamentId,
-    selectedGroupId
+    selectedGroupId,
+    courseData
   };
 };
 

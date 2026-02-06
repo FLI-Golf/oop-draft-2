@@ -24,15 +24,15 @@
       <div class="grid gap-2 text-sm">
         <div class="font-medium">Scope (high level)</div>
         <ul class="list-disc pl-5 text-muted-foreground">
-          <li>Website: schedule, tournaments, teams, players, news/media, merch (WooCommerce)</li>
-          <li>Fantasy: web companion + mobile core experience tied to real-time results</li>
-          <li>Admin tools: data entry, overrides, media publishing</li>
+          <li>Website: schedule, tournaments, then score them(admins)</li>
+          <li>Fantasy: web companion</li>
+          <li>Admin tools: data entry</li>
         </ul>
       </div>
 
       <div class="flex flex-wrap gap-3 pt-2">
         <a href="/league"><Button>League Info</Button></a>
-        <a href="/tournaments"><Button variant="outline">Tournaments Admin</Button></a>
+        <a href="/tournaments"><Button variant="outline">Get Started</Button></a>
         <a href="/work-order"><Button variant="outline">Full Work Order</Button></a>
       </div>
     </CardContent>

@@ -1,4 +1,5 @@
 import PocketBase from "pocketbase";
+import 'dotenv/config';
 
 type DemoUser = {
   email: string;

@@ -197,8 +197,7 @@ cd backend && ./bin/pocketbase superuser upsert EMAIL PASSWORD
 
 #### 3. Start PocketBase
 
-```bash
-cd backend
+```bashc
 chmod +x pb.sh   # first time only
 ./pb.sh
 ```
