@@ -51,7 +51,7 @@ async function upsertCourse(courseName: string, baseHoleDistances: number[]) {
       name,
       date,
       course: courseId,
-      ...(season ? { season } : {})
+      ...(season ? { seasonId: season } : {})
     });
   }
 
@@ -72,11 +72,19 @@ async function main() {
   const baseHoleDistances = [310, 295, 340, 265, 360, 315, 285, 370, 300];
   const course = await upsertCourse("FLI Stadium Course", baseHoleDistances);
   console.log(`✅ Course: ${course.name} (${course.id})`);
-  // 4) Tournament
+
+  // 2) Season
+  let season = await getByUnique<any>("seasons", `year="2026"`);
+  if (!season) {
+    season = await pb.collection("seasons").create({ year: "2026", active: true });
+  }
+  console.log(`✅ Season: ${season.year} (${season.id})`);
+
+  // 3) Tournament
   const tournament = await upsertTournament({
     name: "FLI Championship",
     date: "2026-02-15",
-    season: "2026",
+    season: season.id,
     courseId: course.id
   });
   console.log(`✅ Tournament: ${tournament.name} (${tournament.id})`);
