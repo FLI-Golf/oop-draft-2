@@ -12,7 +12,6 @@ function resolveBaseUrl(): string {
   const envUrl = (import.meta.env.VITE_POCKETBASE_URL as string | undefined)?.trim();
   if (envUrl) return envUrl;
 
-  // Browser inference for Codespaces/Gitpod: swap port to 8090
   if (typeof window !== "undefined") {
     const host = window.location.host;
 
@@ -26,6 +25,11 @@ function resolveBaseUrl(): string {
     if (host.includes(".gitpod.dev") || host.includes(".gitpod.io")) {
       const pbHost = host.replace(/^\d+--/, "8090--");
       return `https://${pbHost}`;
+    }
+
+    // Production (Railway etc.): PB proxied on same origin via /pb
+    if (host.includes(".up.railway.app") || import.meta.env.PROD) {
+      return `${window.location.origin}/pb`;
     }
   }
 
