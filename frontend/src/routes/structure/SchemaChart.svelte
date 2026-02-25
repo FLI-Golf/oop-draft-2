@@ -39,7 +39,7 @@
   const entities: Entity[] = [
     {
       id: "users", label: "users", group: "auth", color: COLORS.auth,
-      x: 50, y: 50,
+      x: 30, y: 50,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "email", type: "email", required: true },
@@ -51,7 +51,7 @@
     },
     {
       id: "seasons", label: "seasons", group: "core", color: COLORS.core,
-      x: 350, y: 50,
+      x: 340, y: 50,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "year", type: "text", required: true },
@@ -61,6 +61,7 @@
     {
       id: "courses", label: "courses", group: "core", color: COLORS.core,
       x: 650, y: 50,
+
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "name", type: "text", required: true },
@@ -69,7 +70,7 @@
     },
     {
       id: "tournaments", label: "tournaments", group: "core", color: COLORS.core,
-      x: 450, y: 280,
+      x: 430, y: 280,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "name", type: "text", required: true },
@@ -80,7 +81,7 @@
     },
     {
       id: "tournament_settings", label: "tournament_settings", group: "core", color: COLORS.core,
-      x: 50, y: 280,
+      x: 30, y: 280,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "tournament", type: "relation", required: false, fk: "tournaments" },
@@ -94,7 +95,7 @@
     },
     {
       id: "players", label: "players", group: "league", color: COLORS.league,
-      x: 900, y: 50,
+      x: 960, y: 50,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "name", type: "text", required: true },
@@ -107,7 +108,7 @@
     },
     {
       id: "teams", label: "teams", group: "league", color: COLORS.league,
-      x: 900, y: 330,
+      x: 960, y: 330,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "name", type: "text", required: true },
@@ -119,7 +120,7 @@
     },
     {
       id: "groups", label: "groups", group: "scoring", color: COLORS.scoring,
-      x: 500, y: 530,
+      x: 480, y: 530,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "tournament", type: "relation", required: true, fk: "tournaments" },
@@ -134,7 +135,7 @@
     },
     {
       id: "scores", label: "scores", group: "scoring", color: COLORS.scoring,
-      x: 200, y: 730,
+      x: 180, y: 730,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "group", type: "relation", required: true, fk: "groups" },
@@ -145,17 +146,17 @@
     },
     {
       id: "season_settings", label: "season_settings", group: "finance", color: COLORS.finance,
-      x: 50, y: 530,
+      x: 30, y: 530,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
-        { name: "season", type: "select", required: true },
+        { name: "season", type: "select", required: true, fk: "seasons" },
         { name: "prizePool", type: "number", required: true },
         { name: "distributed", type: "bool", required: false },
       ],
     },
     {
       id: "prize_distributions", label: "prize_distributions", group: "finance", color: COLORS.finance,
-      x: 50, y: 730,
+      x: 30, y: 730,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "tournament", type: "relation", required: true, fk: "tournaments" },
@@ -167,7 +168,7 @@
     },
     {
       id: "playoffs", label: "playoffs", group: "playoff", color: COLORS.playoff,
-      x: 600, y: 780,
+      x: 580, y: 780,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "tournament", type: "relation", required: true, fk: "tournaments" },
@@ -179,7 +180,7 @@
     },
     {
       id: "playoff_teams", label: "playoff_teams", group: "playoff", color: COLORS.playoff,
-      x: 900, y: 680,
+      x: 960, y: 680,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "playoff", type: "relation", required: true, fk: "playoffs" },
@@ -189,7 +190,7 @@
     },
     {
       id: "playoff_throws", label: "playoff_throws", group: "playoff", color: COLORS.playoff,
-      x: 900, y: 880,
+      x: 960, y: 880,
       fields: [
         { name: "id", type: "text", required: true, pk: true },
         { name: "playoff", type: "relation", required: true, fk: "playoffs" },
@@ -218,33 +219,25 @@
 
   const HEADER_H = 28;
   const ROW_H = 20;
-  const NODE_W = 220;
+  const NODE_W = 270;
 
   function nodeHeight(e: Entity): number {
     return HEADER_H + e.fields.length * ROW_H + 6;
   }
 
   let svgEl: SVGSVGElement;
+  let containerEl: HTMLDivElement;
 
   onMount(() => {
-    const width = svgEl.parentElement?.clientWidth ?? 1200;
-    const height = 1050;
+    const width = 1400;
+    const height = 1100;
 
     const svg = d3
       .select(svgEl)
       .attr("width", width)
-      .attr("height", height)
-      .attr("viewBox", `0 0 ${width} ${height}`);
+      .attr("height", height);
 
-    // Zoom
     const g = svg.append("g");
-    svg.call(
-      d3.zoom<SVGSVGElement, unknown>()
-        .scaleExtent([0.3, 3])
-        .on("zoom", (event) => {
-          g.attr("transform", event.transform);
-        }) as any
-    );
 
     // Arrow marker
     svg
@@ -441,7 +434,17 @@
             .text("FK");
         }
 
-        // Field name
+        // Field name (clipped to avoid overlapping type)
+        const nameClipId = `clip-${entity.id}-${i}`;
+        node
+          .append("clipPath")
+          .attr("id", nameClipId)
+          .append("rect")
+          .attr("x", 28)
+          .attr("y", fy - ROW_H / 2)
+          .attr("width", NODE_W - 100)
+          .attr("height", ROW_H);
+
         node
           .append("text")
           .attr("x", 30)
@@ -450,9 +453,10 @@
           .attr("font-size", "11px")
           .attr("fill", field.fk ? "#6366f1" : "#334155")
           .attr("font-weight", field.required ? 600 : 400)
+          .attr("clip-path", `url(#${nameClipId})`)
           .text(field.name);
 
-        // Field type
+        // Field type (right-aligned)
         node
           .append("text")
           .attr("x", NODE_W - 8)
@@ -508,6 +512,28 @@
   });
 </script>
 
-<div class="w-full overflow-hidden rounded-lg border border-border bg-white">
-  <svg bind:this={svgEl} class="w-full" style="min-height: 700px;"></svg>
+<div class="flex items-center gap-4 text-xs text-muted-foreground mb-2">
+  <span>Scroll to navigate</span>
+  <span>|</span>
+  <span>Ctrl + scroll to zoom</span>
+  <span>|</span>
+  <span>Drag boxes to rearrange</span>
+  <button
+    class="ml-auto px-2 py-1 rounded border text-xs hover:bg-gray-100"
+    onclick={() => {
+      if (containerEl) {
+        containerEl.scrollLeft = 0;
+        containerEl.scrollTop = 0;
+      }
+    }}
+  >
+    Reset view
+  </button>
+</div>
+<div
+  bind:this={containerEl}
+  class="rounded-lg border border-border bg-white"
+  style="overflow: scroll; max-height: 80vh; width: 100%;"
+>
+  <svg bind:this={svgEl} style="display: block; min-width: 1400px;"></svg>
 </div>

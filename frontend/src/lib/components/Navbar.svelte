@@ -10,6 +10,7 @@
     { href: "/", label: "Home", roles: ["Admin", "Scorekeeper", "Pro", "Basic User", "Anonymous"] },
     { href: "/league", label: "League", roles: ["Admin", "Scorekeeper", "Pro", "Basic User", "Anonymous"] },
     { href: "/dashboard", label: "Dashboard", roles: ["Admin", "Scorekeeper", "Pro", "Basic User", "Anonymous"] },
+    { href: "/structure", label: "Structure", roles: ["Admin", "Scorekeeper", "Pro", "Basic User", "Anonymous"] },
     { href: "/scoring", label: "Scoring", roles: ["Admin", "Scorekeeper"] },
     { href: "/playoffs", label: "Playoffs", roles: ["Admin", "Scorekeeper"] },
     { href: "/tournaments", label: "Admin", roles: ["Admin"] },
