@@ -13,14 +13,14 @@ echo ""
 # 1. Install dependencies
 echo "[1/4] Installing dependencies..."
 pnpm install
-cd backend && pnpm install --ignore-workspace && cd ..
+(cd backend && pnpm install --ignore-workspace)
 echo "✅ Dependencies installed"
 echo ""
 
 # 2. Create superuser if credentials provided
 if [[ -n "${POCKETBASE_ADMIN_EMAIL:-}" && -n "${POCKETBASE_ADMIN_PASSWORD:-}" ]]; then
   echo "[2/4] Creating PocketBase superuser..."
-  cd backend && ./bin/pocketbase superuser upsert "$POCKETBASE_ADMIN_EMAIL" "$POCKETBASE_ADMIN_PASSWORD" && cd ..
+  (cd backend && go build -o bin/pbapp ./pbapp && ./bin/pbapp superuser upsert "$POCKETBASE_ADMIN_EMAIL" "$POCKETBASE_ADMIN_PASSWORD")
   echo "✅ Superuser created/updated"
 else
   echo "[2/4] Skipping superuser (set POCKETBASE_ADMIN_EMAIL and POCKETBASE_ADMIN_PASSWORD to enable)"
@@ -29,7 +29,7 @@ echo ""
 
 # 3. Run migrations
 echo "[3/4] Running migrations..."
-cd backend && ./pb-migrate.sh && cd ..
+(cd backend && ./pb-migrate.sh)
 echo "✅ Migrations applied"
 echo ""
 
