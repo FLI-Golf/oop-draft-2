@@ -24,6 +24,9 @@ COPY pb_migrations/ /pb/pb_migrations/
 # pb_data is mounted as a volume in production
 RUN mkdir -p /pb/pb_data
 
+COPY entrypoint.sh /pb/entrypoint.sh
+RUN chmod +x /pb/entrypoint.sh
+
 EXPOSE 8080
 
-CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8080", "--dir=/pb/pb_data", "--migrationsDir=/pb/pb_migrations", "--hooksDir=/pb/pb_hooks"]
+ENTRYPOINT ["/pb/entrypoint.sh"]
