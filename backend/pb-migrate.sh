@@ -8,7 +8,7 @@ MIGRATIONS_DIR="$ROOT_DIR/backend/pb_migrations"
 
 if [ ! -x "$PB" ]; then
   echo "PocketBase binary not found at: $PB"
-  echo "Run: bash backend/pb.sh (it will download pocketbase)"
+  echo "Run: bash backend/pb.sh (it will build pocketbase from backend/pbapp)"
   exit 1
 fi
 

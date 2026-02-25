@@ -1,14 +1,25 @@
+# Build stage
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /build
+
+COPY pbapp/go.mod pbapp/go.sum ./
+RUN go mod download
+
+COPY pbapp/ .
+RUN go build -o /pb/pocketbase .
+
+# Runtime stage
 FROM alpine:3.20
 
-ARG PB_VERSION=0.23.6
 WORKDIR /pb
 
-RUN apk add --no-cache ca-certificates wget unzip \
-  && wget -q https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip -O /tmp/pb.zip \
-  && unzip -q /tmp/pb.zip -d /pb \
-  && rm -rf /tmp/pb.zip \
-  && chmod +x /pb/pocketbase
+RUN apk add --no-cache ca-certificates
+COPY --from=builder /pb/pocketbase /pb/pocketbase
+RUN chmod +x /pb/pocketbase
+
+COPY pb_migrations/ /pb/pb_migrations/
 
 EXPOSE 8080
 
-CMD ["/pb/pocketbase","serve","--http=0.0.0.0:8080","--dir","/pb/pb_data"]
+CMD ["/pb/pocketbase","serve","--http=0.0.0.0:8080","--dir","/pb/pb_data","--migrationsDir","/pb/pb_migrations","--hooksDir","/pb/pb_hooks"]
