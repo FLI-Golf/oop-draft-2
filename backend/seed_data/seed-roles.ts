@@ -64,7 +64,7 @@ async function main() {
   const pb = new PocketBase(PB_URL);
 
   // login as superuser/admin
-  await pb.admins.authWithPassword(PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD);
+  await pb.collection("_superusers").authWithPassword(PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD);
   console.log(`Admin authed against ${PB_URL}`);
 
   for (const u of users) {
