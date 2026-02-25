@@ -78,7 +78,8 @@ frontend/
 
 backend/
   pb.sh               → PocketBase startup script (source of truth)
-  pocket              → PocketBase binary
+  pbapp/              → Custom PocketBase Go app (built by pb.sh)
+  bin/                → Compiled binary (ignored)
   pb_migrations/      → Schema migrations (tracked)
   pb_data/            → Runtime database (ignored)
   seed_data/          → Database seed scripts
@@ -192,12 +193,13 @@ cd backend && pnpm install --ignore-workspace
 #### 2. Create superuser
 
 ```bash
-cd backend && ./bin/pocketbase superuser upsert EMAIL PASSWORD
+cd backend && go build -o bin/pbapp ./pbapp && ./bin/pbapp superuser upsert EMAIL PASSWORD
 ```
 
 #### 3. Start PocketBase
 
-```bashc
+```bash
+cd backend
 chmod +x pb.sh   # first time only
 ./pb.sh
 ```
