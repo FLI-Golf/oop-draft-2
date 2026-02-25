@@ -1,5 +1,7 @@
 # Database Schema
 
+![Schema Diagram](schema-diagram.svg)
+
 ```mermaid
 erDiagram
     users {
