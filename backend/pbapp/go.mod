@@ -1,6 +1,6 @@
 module oop-draft-2-pbapp
 
-go 1.25.4
+go 1.24.0
 
 require github.com/pocketbase/pocketbase v0.36.1
 

@@ -1,5 +1,5 @@
 # Stage 1: Build PocketBase Go binary
-FROM golang:1.22-alpine AS go-builder
+FROM golang:1.24-alpine AS go-builder
 
 WORKDIR /build
 COPY backend/pbapp/go.mod backend/pbapp/go.sum ./
