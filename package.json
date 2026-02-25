@@ -2,13 +2,19 @@
   "name": "oop-draft-2",
   "private": true,
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "scripts": {
     "dev": "pnpm -C frontend dev --host 0.0.0.0 --port 5173",
     "pb:dev": "bash backend/pb.sh",
     "pb:migrate": "bash backend/pb-migrate.sh",
+    "dev:all": "concurrently --names \"pb,frontend\" --prefix-colors \"blue,green\" \"pnpm pb:dev\" \"pnpm dev\"",
     "build": "pnpm -C frontend build",
     "check": "pnpm -C frontend check"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
