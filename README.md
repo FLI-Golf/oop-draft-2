@@ -154,8 +154,8 @@ This installs dependencies, creates the superuser, and runs migrations.
 Then start services:
 
 ```bash
-# Terminal 1: PocketBase
-cd backend && ./pb.sh
+# Terminal 1: PocketBase (from repo root)
+pnpm pb:dev
 
 # Terminal 2: Frontend
 cd frontend && pnpm dev
@@ -197,9 +197,12 @@ cd backend && ./bin/pocketbase superuser upsert EMAIL PASSWORD
 
 #### 3. Start PocketBase
 
-```bashc
-chmod +x pb.sh   # first time only
-./pb.sh
+```bash
+# From repo root (recommended):
+pnpm pb:dev
+
+# Or from the backend/ directory:
+cd backend && ./pb.sh
 ```
 
 **PocketBase Admin UI:**
