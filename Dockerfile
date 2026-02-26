@@ -41,11 +41,16 @@ COPY --from=go-builder /build/pocketbase /pb/pocketbase
 COPY backend/pb_migrations/ /pb/pb_migrations/
 RUN mkdir -p /pb/pb_data
 
-# Frontend build + workspace node_modules (pnpm symlinks need root store)
+# Frontend build + runtime deps
 COPY --from=frontend-builder /app/frontend/build /app/frontend/build
 COPY --from=frontend-builder /app/frontend/package.json /app/frontend/package.json
-COPY --from=frontend-builder /app/frontend/node_modules /app/frontend/node_modules
-COPY --from=frontend-builder /app/node_modules /app/node_modules
+COPY --from=frontend-builder /app/shared /app/shared
+
+# Install runtime deps with npm (avoids pnpm symlink issues)
+WORKDIR /app/frontend
+RUN sed -i 's/"@oop-draft-2\/shared": "workspace:\*"/"@oop-draft-2\/shared": "file:..\/shared"/' package.json \
+    && npm install --omit=dev --ignore-scripts 2>&1 | tail -5
+WORKDIR /
 
 # Reverse proxy and entrypoint
 COPY proxy.mjs /app/proxy.mjs
