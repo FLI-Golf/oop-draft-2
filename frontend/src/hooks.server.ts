@@ -26,10 +26,18 @@ export const handle: Handle = async ({ event, resolve }) => {
         : undefined,
     });
 
-    return new Response(response.body, {
+    // Read body as arrayBuffer to avoid stream issues
+    const body = await response.arrayBuffer();
+
+    // Copy headers but remove content-encoding (we're sending raw bytes)
+    const responseHeaders = new Headers(response.headers);
+    responseHeaders.delete('content-encoding');
+    responseHeaders.delete('transfer-encoding');
+
+    return new Response(body, {
       status: response.status,
       statusText: response.statusText,
-      headers: response.headers,
+      headers: responseHeaders,
     });
   }
 
