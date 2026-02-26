@@ -97,10 +97,15 @@ export const load: PageServerLoad = async ({ url }) => {
   }
 
   // Get all teams
-  const teams = await pb.collection("teams").getFullList<TeamRecord>({
-    sort: "name",
-    expand: "malePlayer,femalePlayer",
-  });
+  let teams: TeamRecord[] = [];
+  try {
+    teams = await pb.collection("teams").getFullList<TeamRecord>({
+      sort: "name",
+      expand: "malePlayer,femalePlayer",
+    });
+  } catch (e) {
+    console.warn("[dashboard/load] failed to load teams:", e);
+  }
 
   const teamsMap = new Map<string, TeamRecord>();
   for (const team of teams) teamsMap.set(team.id, team);
@@ -113,10 +118,14 @@ export const load: PageServerLoad = async ({ url }) => {
     tournamentId ? tournaments.find((t) => t.id === tournamentId) ?? null : null;
 
   if (tournamentId) {
-    groups = await pb.collection("groups").getFullList<GroupRecord>({
-      filter: `tournament="${tournamentId}"`,
-      sort: "groupNumber",
-    });
+    try {
+      groups = await pb.collection("groups").getFullList<GroupRecord>({
+        filter: `tournament="${tournamentId}"`,
+        sort: "groupNumber",
+      });
+    } catch (e) {
+      console.warn("[dashboard/load] failed to load groups:", e);
+    }
 
     try {
       tournamentSettings = await pb
