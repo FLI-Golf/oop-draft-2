@@ -46,7 +46,8 @@ COPY --from=frontend-builder /app/frontend/build /app/frontend/build
 COPY --from=frontend-builder /app/frontend/package.json /app/frontend/package.json
 COPY --from=frontend-builder /app/frontend/node_modules /app/frontend/node_modules
 
-# Entrypoint
+# Reverse proxy and entrypoint
+COPY proxy.mjs /app/proxy.mjs
 COPY backend/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
