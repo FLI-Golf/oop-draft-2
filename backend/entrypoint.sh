@@ -17,6 +17,12 @@ if [ "$RESET_DB" = "true" ]; then
   echo "After wipe: $(ls -la $PB_DIR/pb_data/ 2>&1)"
 fi
 
+# Debug: verify migration files and data dir
+echo "Migration files in $PB_DIR/pb_migrations/:"
+ls -la $PB_DIR/pb_migrations/ 2>&1 | head -10
+echo "Data dir $PB_DIR/pb_data/:"
+ls -la $PB_DIR/pb_data/ 2>&1
+
 # Start PocketBase — the JSVM plugin applies JS migrations automatically on serve
 echo "Starting PocketBase (migrations will apply on startup)..."
 
