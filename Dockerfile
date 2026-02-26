@@ -31,6 +31,9 @@ ENV NODE_ENV=production
 ENV RAILWAY_ENVIRONMENT=true
 RUN pnpm -C frontend build
 
+# Create self-contained deploy directory (resolves pnpm symlinks to real files)
+RUN pnpm --filter=frontend deploy /app/deploy --prod
+
 # Stage 3: Runtime
 FROM node:18-alpine
 
@@ -41,16 +44,9 @@ COPY --from=go-builder /build/pocketbase /pb/pocketbase
 COPY backend/pb_migrations/ /pb/pb_migrations/
 RUN mkdir -p /pb/pb_data
 
-# Frontend build + runtime deps
+# Frontend: build output + production node_modules (no symlinks)
 COPY --from=frontend-builder /app/frontend/build /app/frontend/build
-COPY --from=frontend-builder /app/frontend/package.json /app/frontend/package.json
-COPY --from=frontend-builder /app/shared /app/shared
-
-# Install runtime deps with npm (avoids pnpm symlink issues)
-WORKDIR /app/frontend
-RUN sed -i 's/"@oop-draft-2\/shared": "workspace:\*"/"@oop-draft-2\/shared": "file:..\/shared"/' package.json \
-    && npm install --omit=dev --ignore-scripts 2>&1 | tail -5
-WORKDIR /
+COPY --from=frontend-builder /app/deploy/node_modules /app/frontend/node_modules
 
 # Reverse proxy and entrypoint
 COPY proxy.mjs /app/proxy.mjs
