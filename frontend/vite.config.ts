@@ -5,8 +5,8 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 	ssr: {
-		// Bundle pocketbase into SSR output so it doesn't need to be in node_modules at runtime
-		noExternal: ['pocketbase']
+		// Bundle these into SSR output so adapter-node doesn't need them in node_modules at runtime
+		noExternal: ['pocketbase', '@oop-draft-2/shared']
 	},
 	server: {
 		host: '0.0.0.0',
