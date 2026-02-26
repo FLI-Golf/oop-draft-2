@@ -1,11 +1,5 @@
 // src/lib/pb.ts
 import PocketBase from "pocketbase";
-import { env } from "$env/dynamic/private";
-
-export function getServerPB() {
-  const url = env.POCKETBASE_URL ?? "http://127.0.0.1:8090";
-  return new PocketBase(url);
-}
 
 function resolveBaseUrl(): string {
   // Prefer Vite env var (what you should use in Codespaces)
@@ -27,9 +21,9 @@ function resolveBaseUrl(): string {
       return `https://${pbHost}`;
     }
 
-    // Production (Railway etc.): PB proxied on same origin via /pb
+    // Production (Railway etc.): PB proxied on same origin
     if (host.includes(".up.railway.app") || import.meta.env.PROD) {
-      return `${window.location.origin}/pb`;
+      return window.location.origin;
     }
   }
 
