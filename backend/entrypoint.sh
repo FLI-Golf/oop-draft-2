@@ -12,7 +12,9 @@ echo "Migrations: $(ls $PB_DIR/pb_migrations/ 2>/dev/null | wc -l) files"
 # Reset database if requested (useful when migrations table is out of sync)
 if [ "$RESET_DB" = "true" ]; then
   echo "RESET_DB=true — wiping pb_data to re-run migrations from scratch..."
-  rm -rf $PB_DIR/pb_data/*
+  echo "Before wipe: $(ls -la $PB_DIR/pb_data/ 2>&1)"
+  find $PB_DIR/pb_data -mindepth 1 -delete 2>/dev/null || rm -rf $PB_DIR/pb_data && mkdir -p $PB_DIR/pb_data
+  echo "After wipe: $(ls -la $PB_DIR/pb_data/ 2>&1)"
 fi
 
 # Apply migrations
