@@ -14,7 +14,16 @@ function proxy(req, res, targetPort) {
   };
 
   const proxyReq = http.request(options, (proxyRes) => {
-    res.writeHead(proxyRes.statusCode, proxyRes.headers);
+    // Strip hop-by-hop headers forbidden in HTTP/2 (RFC 9113 §8.2.2).
+    // Railway's edge terminates HTTP/2 from clients and re-encodes our
+    // HTTP/1.1 response; forwarding these causes ERR_HTTP2_PROTOCOL_ERROR.
+    const headers = { ...proxyRes.headers };
+    delete headers['connection'];
+    delete headers['keep-alive'];
+    delete headers['transfer-encoding'];
+    delete headers['upgrade'];
+    delete headers['proxy-connection'];
+    res.writeHead(proxyRes.statusCode, headers);
     proxyRes.pipe(res, { end: true });
   });
 
