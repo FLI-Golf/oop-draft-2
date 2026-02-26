@@ -3,16 +3,24 @@ set -e
 
 PB_DIR="${PB_DIR:-/pb}"
 
+echo "=== Entrypoint ==="
+echo "PB_DIR: $PB_DIR"
+echo "Migrations: $(ls $PB_DIR/pb_migrations/ 2>/dev/null | wc -l) files"
+
 # Apply migrations
-$PB_DIR/pocketbase migrate up --dir=$PB_DIR/pb_data --migrationsDir=$PB_DIR/pb_migrations 2>/dev/null || true
+echo "Applying migrations..."
+$PB_DIR/pocketbase migrate up --dir=$PB_DIR/pb_data --migrationsDir=$PB_DIR/pb_migrations 2>&1 || echo "migrate up via CLI skipped"
 
 # Create superuser if env vars are set
 if [ -n "$PB_ADMIN_EMAIL" ] && [ -n "$PB_ADMIN_PASSWORD" ]; then
-  $PB_DIR/pocketbase superuser upsert "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" --dir=$PB_DIR/pb_data 2>/dev/null || true
+  echo "Creating superuser..."
+  $PB_DIR/pocketbase superuser upsert "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" --dir=$PB_DIR/pb_data 2>&1 || echo "superuser upsert skipped"
 fi
 
 # If frontend build exists, run full-stack mode
 if [ -d "/app/frontend/build" ]; then
+  echo "Full-stack mode: PocketBase on :8090, SvelteKit on :8080"
+
   # Start PocketBase in background on port 8090
   $PB_DIR/pocketbase serve --http=0.0.0.0:8090 --dir=$PB_DIR/pb_data --migrationsDir=$PB_DIR/pb_migrations --hooksDir=$PB_DIR/pb_hooks &
   PB_PID=$!
@@ -34,9 +42,9 @@ if [ -d "/app/frontend/build" ]; then
   node build &
   SK_PID=$!
 
-  echo "Frontend on :8080, PocketBase on :8090"
+  echo "Frontend started"
   wait $PB_PID $SK_PID
 else
-  # Backend-only mode
+  echo "Backend-only mode on :8080"
   exec $PB_DIR/pocketbase serve --http=0.0.0.0:8080 --dir=$PB_DIR/pb_data --migrationsDir=$PB_DIR/pb_migrations --hooksDir=$PB_DIR/pb_hooks
 fi
