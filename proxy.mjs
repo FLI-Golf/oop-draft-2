@@ -5,12 +5,18 @@ const SK_PORT = 3000;
 const LISTEN_PORT = process.env.PORT || 8080;
 
 function proxy(req, res, targetPort) {
+  // Don't forward accept-encoding to upstream — PocketBase sends gzip'd
+  // bodies without a Content-Encoding header (relies on chunked framing).
+  // Let Railway's edge handle client compression instead.
+  const fwdHeaders = { ...req.headers, host: `127.0.0.1:${targetPort}` };
+  delete fwdHeaders['accept-encoding'];
+
   const options = {
     hostname: '127.0.0.1',
     port: targetPort,
     path: req.url,
     method: req.method,
-    headers: { ...req.headers, host: `127.0.0.1:${targetPort}` },
+    headers: fwdHeaders,
   };
 
   const proxyReq = http.request(options, (proxyRes) => {
