@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+# Capture Railway's PORT before anything overrides it
+RAILWAY_PORT="${PORT:-8080}"
 PB_DIR="${PB_DIR:-/pb}"
 
 echo "=== Entrypoint ==="
@@ -19,7 +21,7 @@ fi
 
 # If frontend build exists, run full-stack mode
 if [ -d "/app/frontend/build" ]; then
-  echo "Full-stack mode: proxy :8080 -> PB :8090 / SK :3000"
+  echo "Full-stack mode: proxy :${RAILWAY_PORT} -> PB :8090 / SK :3000"
 
   # Start PocketBase in background on port 8090
   $PB_DIR/pocketbase serve --http=0.0.0.0:8090 --dir=$PB_DIR/pb_data --migrationsDir=$PB_DIR/pb_migrations --hooksDir=$PB_DIR/pb_hooks &
@@ -34,12 +36,10 @@ if [ -d "/app/frontend/build" ]; then
     sleep 1
   done
 
-  # Start SvelteKit on port 3000
+  # Start SvelteKit on port 3000 (PORT is scoped to this subprocess only)
   export POCKETBASE_URL=http://127.0.0.1:8090
-  export PORT=3000
-  export HOST=0.0.0.0
   cd /app/frontend
-  node build &
+  PORT=3000 HOST=0.0.0.0 node build &
   SK_PID=$!
 
   echo "Waiting for SvelteKit..."
@@ -51,10 +51,10 @@ if [ -d "/app/frontend/build" ]; then
     sleep 1
   done
 
-  # Start reverse proxy on port 8080 (Railway's exposed port)
+  # Start reverse proxy on Railway's assigned port
   cd /app
-  echo "Starting proxy on :8080 -> PB:8090 / SK:3000"
-  exec node proxy.mjs
+  echo "Starting proxy on :${RAILWAY_PORT} -> PB:8090 / SK:3000"
+  PORT=$RAILWAY_PORT exec node proxy.mjs
 else
   echo "Backend-only mode on :8080"
   exec $PB_DIR/pocketbase serve --http=0.0.0.0:8080 --dir=$PB_DIR/pb_data --migrationsDir=$PB_DIR/pb_migrations --hooksDir=$PB_DIR/pb_hooks
