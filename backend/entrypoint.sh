@@ -9,6 +9,12 @@ echo "=== Entrypoint ==="
 echo "PB_DIR: $PB_DIR"
 echo "Migrations: $(ls $PB_DIR/pb_migrations/ 2>/dev/null | wc -l) files"
 
+# Reset database if requested (useful when migrations table is out of sync)
+if [ "$RESET_DB" = "true" ]; then
+  echo "RESET_DB=true — wiping pb_data to re-run migrations from scratch..."
+  rm -rf $PB_DIR/pb_data/*
+fi
+
 # Apply migrations
 echo "Applying migrations..."
 $PB_DIR/pocketbase migrate up --dir=$PB_DIR/pb_data --migrationsDir=$PB_DIR/pb_migrations 2>&1 || echo "migrate up via CLI skipped"
