@@ -39,7 +39,7 @@ RUN apk add --no-cache ca-certificates
 # PocketBase
 COPY --from=go-builder /build/pocketbase /pb/pocketbase
 COPY backend/pb_migrations/ /pb/pb_migrations/
-RUN mkdir -p /pb/pb_data
+RUN mkdir -p /pb/pb_data /pb/pb_hooks
 
 # Frontend build — all deps are bundled by adapter-node (dependencies is empty),
 # so no node_modules needed at runtime
