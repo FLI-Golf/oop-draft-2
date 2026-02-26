@@ -41,10 +41,11 @@ COPY --from=go-builder /build/pocketbase /pb/pocketbase
 COPY backend/pb_migrations/ /pb/pb_migrations/
 RUN mkdir -p /pb/pb_data
 
-# Frontend build
+# Frontend build + workspace node_modules (pnpm symlinks need root store)
 COPY --from=frontend-builder /app/frontend/build /app/frontend/build
 COPY --from=frontend-builder /app/frontend/package.json /app/frontend/package.json
 COPY --from=frontend-builder /app/frontend/node_modules /app/frontend/node_modules
+COPY --from=frontend-builder /app/node_modules /app/node_modules
 
 # Reverse proxy and entrypoint
 COPY proxy.mjs /app/proxy.mjs
