@@ -17,14 +17,15 @@ if [ "$RESET_DB" = "true" ]; then
   echo "After wipe: $(ls -la $PB_DIR/pb_data/ 2>&1)"
 fi
 
-# Debug: verify migration files and data dir
-echo "Migration files in $PB_DIR/pb_migrations/:"
-ls -la $PB_DIR/pb_migrations/ 2>&1 | head -10
-echo "Data dir $PB_DIR/pb_data/:"
-ls -la $PB_DIR/pb_data/ 2>&1
+# Apply migrations (stock PocketBase binary handles JS migrations natively)
+echo "Applying migrations..."
+$PB_DIR/pocketbase migrate up --dir=$PB_DIR/pb_data --migrationsDir=$PB_DIR/pb_migrations 2>&1 || echo "migrate up skipped"
 
-# Start PocketBase — the JSVM plugin applies JS migrations automatically on serve
-echo "Starting PocketBase (migrations will apply on startup)..."
+# Create superuser if env vars are set
+if [ -n "$PB_ADMIN_EMAIL" ] && [ -n "$PB_ADMIN_PASSWORD" ]; then
+  echo "Creating superuser..."
+  $PB_DIR/pocketbase superuser upsert "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" --dir=$PB_DIR/pb_data 2>&1 || echo "superuser upsert skipped"
+fi
 
 # If frontend build exists, run full-stack mode
 if [ -d "/app/frontend/build" ]; then
@@ -42,12 +43,6 @@ if [ -d "/app/frontend/build" ]; then
     fi
     sleep 1
   done
-
-  # Create superuser after PB is running
-  if [ -n "$PB_ADMIN_EMAIL" ] && [ -n "$PB_ADMIN_PASSWORD" ]; then
-    echo "Creating superuser..."
-    $PB_DIR/pocketbase superuser upsert "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" --dir=$PB_DIR/pb_data 2>&1 || echo "superuser upsert skipped"
-  fi
 
   # Start SvelteKit on port 3000 (PORT is scoped to this subprocess only)
   export POCKETBASE_URL=http://127.0.0.1:8090
