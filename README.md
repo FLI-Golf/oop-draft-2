@@ -240,6 +240,28 @@ The `.devcontainer/` configuration provides a ready-to-use environment:
 
 ---
 
+## Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+pnpm test
+
+# Watch mode (re-run on changes)
+pnpm test:watch
+```
+
+The test suite includes comprehensive coverage for:
+- Scoring engines (Standard Stroke, CTH Distance, Sudden Death)
+- Playoff detection and workflow
+- Tournament service orchestration
+- Group and score validation
+
+See `shared/TEST_COVERAGE.md` for detailed test documentation.
+
+---
+
 ## Database & Migrations
 
 - Schema migrations live in `backend/pb_migrations/`
