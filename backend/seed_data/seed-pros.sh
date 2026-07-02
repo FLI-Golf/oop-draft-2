@@ -34,7 +34,7 @@ fi
 AUTH_HEADER="Authorization: Bearer $TOKEN"
 
 teams=(
-  "Hyzer Heros"
+  "Hyzer Heroes"
   "Huk-a-Mania"
   "Flight Squad"
   "Birdie Storm"
@@ -57,14 +57,14 @@ male_pros=(
   "Kyle Klein:1025:6"
   "Matthew Orum:1020:7"
   "Anthony Barela:1015:8"
-  "Niklas Anttila:1010:9"
-  "Chris Dickerson:1005:10"
-  "Simon Lizotte:1000:11"
-  "Ezra Robinson:995:12"
+  "Chris Dickerson:1010:9"
+  "Simon Lizotte:1005:10"
+  "Ezra Robinson:1000:11"
+  "Eagle McMahon:995:12"
 )
 
 female_pros=(
-  "Kristin Tattar:1000:1"
+  "Kristin Latt:1000:1"
   "Evelina Salonen:995:2"
   "Ohn Scoggins:990:3"
   "Missy Gannon:985:4"

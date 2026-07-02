@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "seed:temp-scores": "tsx seed_data/seed-temporary-scores.ts",
+    "seed:clear-scores": "tsx seed_data/clear-scores.ts",
+    "results:export": "tsx seed_data/export-tournament-results.ts",
+    "results:send": "tsx seed_data/send-tournament-results.ts"
   },
   "keywords": [],
   "author": "",

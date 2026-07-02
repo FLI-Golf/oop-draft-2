@@ -19,7 +19,7 @@
     distributed: boolean;
   };
   
-  let prizePoolSeason = '2026';
+  let prizePoolSeason = '2027';
   let prizePoolAmount = '4000000';
   let status = '';
   let error = '';
@@ -86,7 +86,6 @@
             class="w-full rounded-md border px-3 py-2 text-sm"
             required
           >
-            <option value="2026">2026</option>
             <option value="2027">2027</option>
             <option value="2028">2028</option>
             <option value="2029">2029</option>

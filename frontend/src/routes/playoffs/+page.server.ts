@@ -81,7 +81,7 @@ type GroupRecord = {
 export const load: PageServerLoad = async ({ url }) => {
   const pb = getServerPB();
   
-  const selectedSeason = url.searchParams.get("season") ?? "2026";
+  const selectedSeason = url.searchParams.get("season") ?? "2027";
   const selectedTournamentId = url.searchParams.get("tournament");
   const selectedPlayoffId = url.searchParams.get("playoff");
 

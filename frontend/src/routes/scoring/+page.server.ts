@@ -72,7 +72,7 @@ type ScoreRecord = {
 export const load: PageServerLoad = async ({ url }) => {
   const pb = getServerPB();
   
-  const selectedSeason = url.searchParams.get("season") ?? "2026";
+  const selectedSeason = url.searchParams.get("season") ?? "2027";
   const selectedTournamentId = url.searchParams.get("tournament");
   const selectedGroupId = url.searchParams.get("group");
 

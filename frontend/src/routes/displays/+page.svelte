@@ -7,7 +7,7 @@
   export let form;
 
   let isGenerating = false;
-  let selectedSeason = "2026";
+  let selectedSeason = "2027";
   let status = "";
   let error = "";
 </script>
@@ -100,7 +100,6 @@
                 bind:value={selectedSeason}
                 class="w-full rounded-md border border-emerald-300 px-3 py-2 text-sm"
               >
-                <option value="2026">2026</option>
                 <option value="2027">2027</option>
                 <option value="2028">2028</option>
                 <option value="2029">2029</option>

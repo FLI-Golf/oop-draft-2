@@ -20,7 +20,7 @@
   
   export let forms: TournamentForm[] = [];
   export let selectedCourseId: string = '';
-  export let season: string = '2026';
+  export let season: string = '2027';
   export let onTournamentUpdate: (index: number) => void = () => {};
   
   let isCreatingAll = false;

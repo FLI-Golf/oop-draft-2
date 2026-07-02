@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "v1",
+  "source": "oop-draft-2",
+  "generatedAt": "2026-07-02T14:49:21.912Z",
+  "seasonYear": "2027",
+  "tournament": {
+    "id": "owyb0euxnr7f1a7",
+    "externalId": "2najeglkb5rq5av",
+    "name": "FLI Championship 1",
+    "date": "2027-02-15"
+  },
+  "summary": {
+    "groups": 6,
+    "scoreRows": 216,
+    "teamsRanked": 12
+  },
+  "results": [
+    {
+      "position": 1,
+      "teamId": "d9ejog6c333q730",
+      "teamName": "Flight Squad",
+      "totalScore": 57,
+      "prizeAmount": 133333,
+      "players": {
+        "male": "Calvin Heimburg",
+        "female": "Ohn Scoggins"
+      }
+    },
+    {
+      "position": 2,
+      "teamId": "74c69w9ne45heub",
+      "teamName": "Huk-a-Mania",
+      "totalScore": 57,
+      "prizeAmount": 100000,
+      "players": {
+        "male": "Ricky Wysocki",
+        "female": "Evelina Salonen"
+      }
+    },
+    {
+      "position": 3,
+      "teamId": "3x4s370p9925rv2",
+      "teamName": "Disc Jesters",
+      "totalScore": 58,
+      "prizeAmount": 80000,
+      "players": {
+        "male": "Kyle Klein",
+        "female": "Silva Saarinen"
+      }
+    },
+    {
+      "position": 4,
+      "teamId": "hyzer_heroes_ext",
+      "teamName": "Hyzer Heroes",
+      "totalScore": 58,
+      "prizeAmount": 66667,
+      "players": {
+        "male": "Gannon Buhr",
+        "female": "Kristin Tattar"
+      }
+    },
+    {
+      "position": 5,
+      "teamId": "3pevu2011a491i1",
+      "teamName": "Birdie Storm",
+      "totalScore": 60,
+      "prizeAmount": 60000,
+      "players": {
+        "male": "Isaac Robinson",
+        "female": "Missy Gannon"
+      }
+    },
+    {
+      "position": 6,
+      "teamId": "5y74uv464ajb5qg",
+      "teamName": "Chain Breakers",
+      "totalScore": 60,
+      "prizeAmount": 53333,
+      "players": {
+        "male": "Paul McBeth",
+        "female": "Holyn Handley"
+      }
+    },
+    {
+      "position": 7,
+      "teamId": "b76lwyku62n608v",
+      "teamName": "Midas Touch",
+      "totalScore": 60,
+      "prizeAmount": 46667,
+      "players": {
+        "male": "Matthew Orum",
+        "female": "Ella Hansen"
+      }
+    },
+    {
+      "position": 8,
+      "teamId": "y86we7yuqc83d59",
+      "teamName": "Glide Masters",
+      "totalScore": 62,
+      "prizeAmount": 40000,
+      "players": {
+        "male": "Ezra Robinson",
+        "female": "Natalie Ryan"
+      }
+    },
+    {
+      "position": 9,
+      "teamId": "1q89u6pi0rjmdf0",
+      "teamName": "Ace Makers",
+      "totalScore": 63,
+      "prizeAmount": 33333,
+      "players": {
+        "male": "Simon Lizotte",
+        "female": "Kat Mertsch"
+      }
+    },
+    {
+      "position": 10,
+      "teamId": "fvtitf16nk7cyf0",
+      "teamName": "Chain Seekers",
+      "totalScore": 63,
+      "prizeAmount": 26667,
+      "players": {
+        "male": "Anthony Barela",
+        "female": "Hailey King"
+      }
+    },
+    {
+      "position": 11,
+      "teamId": "024g02q6l21qk7y",
+      "teamName": "Disc Dynasty",
+      "totalScore": 63,
+      "prizeAmount": 16667,
+      "players": {
+        "male": "Chris Dickerson",
+        "female": "Paige Pierce"
+      }
+    },
+    {
+      "position": 12,
+      "teamId": "3hrt2kg0r7cpp6j",
+      "teamName": "Fairway Bombers",
+      "totalScore": 63,
+      "prizeAmount": 10000,
+      "players": {
+        "male": "Niklas Anttila",
+        "female": "Heidi Laine"
+      }
+    }
+  ]
+}

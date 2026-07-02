@@ -28,7 +28,7 @@
   export let tournaments: TournamentRecord[] = [];
   export let courses: CourseRecord[] = [];
   export let selectedCourseId: string = '';
-  export let season: string = '2026';
+  export let season: string = '2027';
   export let onTournamentCreated: () => void = () => {};
   
   // Tournament form state - 6 default tournaments
@@ -38,12 +38,12 @@
     created: boolean;
     skip: boolean;
   }> = [
-    { name: 'FLI Championship 1', date: '2026-02-15', created: false, skip: false },
-    { name: 'FLI Championship 2', date: '2026-03-17', created: false, skip: false },
-    { name: 'FLI Championship 3', date: '2026-04-16', created: false, skip: false },
-    { name: 'FLI Championship 4', date: '2026-05-16', created: false, skip: false },
-    { name: 'FLI Championship 5', date: '2026-06-15', created: false, skip: false },
-    { name: 'FLI Championship 6', date: '2026-07-15', created: false, skip: false },
+    { name: 'FLI Championship 1', date: '2027-02-15', created: false, skip: false },
+    { name: 'FLI Championship 2', date: '2027-03-17', created: false, skip: false },
+    { name: 'FLI Championship 3', date: '2027-04-16', created: false, skip: false },
+    { name: 'FLI Championship 4', date: '2027-05-16', created: false, skip: false },
+    { name: 'FLI Championship 5', date: '2027-06-15', created: false, skip: false },
+    { name: 'FLI Championship 6', date: '2027-07-15', created: false, skip: false },
   ];
   
   let status = '';
@@ -99,7 +99,6 @@
           bind:value={season}
           onchange={(e) => handleSeasonChange(e.currentTarget.value)}
         >
-          <option value="2026">2026</option>
           <option value="2027">2027</option>
           <option value="2028">2028</option>
           <option value="2029">2029</option>

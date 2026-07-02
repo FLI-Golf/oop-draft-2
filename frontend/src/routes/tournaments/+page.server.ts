@@ -89,7 +89,7 @@ export const load: PageServerLoad = async () => {
 
     // Check which seasons already have groups generated
     const groupsExistBySeason: Record<string, boolean> = {};
-    for (const season of ["2026", "2027", "2028", "2029"]) {
+    for (const season of ["2027", "2028", "2029"]) {
       const seasonTournaments = tournaments.filter(t => t.expand?.seasonId?.year === season);
       if (seasonTournaments.length > 0) {
         const existingGroups = await pb.collection("groups").getList(1, 1, {
@@ -154,7 +154,7 @@ export const actions: Actions = {
     const course = String(data.get("course") ?? "").trim();
     const season = String(data.get("season") ?? "").trim();
 
-    const allowedSeasons = new Set(["2026", "2027", "2028", "2029"]);
+    const allowedSeasons = new Set(["2027", "2028", "2029"]);
 
     if (!name || !date || !course || !season) {
       return fail(400, { error: "Missing required fields." });
@@ -224,7 +224,7 @@ export const actions: Actions = {
     const season = String(data.get("season") ?? "").trim();
     const startDate = String(data.get("startDate") ?? "").trim();
 
-    const allowedSeasons = new Set(["2026", "2027", "2028", "2029"]);
+    const allowedSeasons = new Set(["2027", "2028", "2029"]);
 
     if (!course || !season || !startDate) {
       return fail(400, { error: "Missing required fields." });

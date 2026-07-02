@@ -42,7 +42,7 @@
   
   // Shared state across steps
   let selectedCourseId = data.courses?.[0]?.id ?? "";
-  let season = "2026";
+  let season = "2027";
   let prizePoolAmount = 4000000;
   
   // Completion tracking
