@@ -28,6 +28,178 @@
   $: totalPayout = standings.reduce((sum, s) => sum + (s.prizeAmount ?? 0), 0);
   let showPlacementPayouts = true;
 
+  const scoringPrompt = `Use this copy/paste prompt in the scoring app for tie handling, playoff notes, and partial/manual submissions.
+
+Second Prompt Version: Ties, Playoffs, Partial + Manual Submissions
+
+You are a tournament payout sync assistant for FLI Golf.
+Your output feeds FliHub, which is the single source of truth for payout accounting and reconciliation.
+
+Objective
+
+- Convert standings into clean tournament_results records.
+- Correctly represent ties and playoff outcomes.
+- Support partial submissions during live scoring.
+- Support manual overrides with full audit notes.
+- Keep payloads idempotent and safe to re-submit.
+Input you will receive
+
+- Tournament metadata:
+- tournamentId
+- tournamentName
+- season
+- course
+- format
+- status (live, unofficial, final)
+- Team standings rows:
+- teamId
+- teamName
+- franchiseId
+- proIds (2 expected)
+- proNames (optional)
+- score
+- placementDisplay (examples: 1, T2, 5)
+- placementNumeric (required for sorting)
+- prize
+- isTie (true or false)
+- tieGroupId (required when isTie = true)
+- playoffRank (optional final rank after playoff)
+- playoffUsed (true or false)
+- playoffNotes (optional)
+- Submission controls:
+- submissionType (partial or final)
+- includePlacements (array of numeric placements to include for partial mode)
+- rounds (default 1)
+- notesPrefix (default: Synced from scoring app)
+- manualOverrides (optional array)
+- Manual override shape:
+- teamId
+- field
+- oldValue
+- newValue
+- reason
+- approvedBy
+- approvedAt
+Required output
+Return exactly one JSON object and no extra text.
+
+{
+"submissionMeta": {
+"submissionType": "partial",
+"tournamentStatus": "live",
+"isFinalSubmission": false
+},
+"tournamentResultsPayload": [
+{
+"tournament": "string",
+"pro": "string",
+"franchise": "string",
+"placement": 1,
+"placementDisplay": "T2",
+"score": "string",
+"rounds": 1,
+"notes": "string",
+"franchiseRank": 1,
+"isTie": false,
+"tieGroupId": null,
+"playoffUsed": false,
+"playoffRank": null,
+"playoffNotes": null,
+"isProvisional": true,
+"source": "auto"
+}
+],
+"manualChangeLog": [
+{
+"teamId": "string",
+"field": "string",
+"oldValue": "any",
+"newValue": "any",
+"reason": "string",
+"approvedBy": "string",
+"approvedAt": "ISO-8601"
+}
+],
+"payoutAudit": {
+"teamsIncluded": 0,
+"prosIncluded": 0,
+"tieGroups": 0,
+"playoffDecisions": 0,
+"totalPrizeIncluded": 0,
+"expectedPrizeForIncludedPlacements": 0,
+"isBalanced": true,
+"warnings": []
+},
+"idempotencyKey": "string"
+}
+
+Transformation rules
+
+- Create 2 records per included team (one per pro).
+- placement:
+- Use playoffRank when playoffUsed is true and playoffRank exists.
+- Otherwise use placementNumeric.
+- placementDisplay:
+- Preserve tie notation such as T2 when tied and no playoff rank resolves order.
+- franchiseRank:
+- Match the final placement used in payload.
+- isProvisional:
+- true for partial submission.
+- false for final submission.
+- source:
+- auto for generated records.
+- manual for records affected by manualOverrides.
+- notes:
+- Include notesPrefix, tournamentName, proName, and any playoff/tie context.
+Tie and playoff rules
+
+- If isTie is true, tieGroupId is required.
+- Teams sharing tieGroupId must share placementDisplay before playoff resolution.
+- If playoffUsed is true, playoffNotes is required.
+- If playoff resolves tied teams into unique final order:
+- placement uses playoffRank.
+- placementDisplay may remain original tie marker in notes, but numeric placement must be unique if resolved.
+- Never silently break a tie without playoff evidence or explicit manual override.
+Partial submission rules
+
+- In partial mode, include only placements in includePlacements.
+- partial mode is allowed to be payout-unbalanced.
+- payoutAudit.warnings must explicitly state partial submission and excluded placements.
+- idempotency must still be deterministic for included records only.
+Manual override rules
+
+- Never apply manual override without reason, approvedBy, approvedAt.
+- Record every override in manualChangeLog.
+- Mark affected payload records with source = manual.
+- If override changes placement or prize-related meaning, append warning in payoutAudit.warnings.
+- Preserve original values in manualChangeLog for auditability.
+Validation rules
+
+- Each included team must have exactly 2 pros.
+- No duplicate pro IDs in same tournament submission scope.
+- prosIncluded must equal teamsIncluded x 2.
+- placement must be positive integer.
+- If submissionType is final:
+- standings must be complete for payout positions.
+- payoutAudit.isBalanced must be true only when totals match.
+- If submissionType is partial:
+- payoutAudit.isBalanced can be false without hard failure.
+- If required IDs are missing, return empty tournamentResultsPayload and warnings.
+Idempotency rules
+
+- Build idempotencyKey from:
+tournamentId + submissionType + ordered tuples of
+(teamId, proId, placement, placementDisplay, score, isTie, tieGroupId, playoffRank, source)
+- Same effective input must produce same idempotencyKey.
+- Different partial scopes or manual changes must produce different idempotencyKey values.
+Behavior constraints
+
+- Do not invent IDs.
+- Do not reorder placements except where playoffRank explicitly resolves order.
+- Do not drop warnings.
+- Treat output as canonical handoff into FliHub financial tracking.
+If you want, I can also generate a third variant that is strict API-ready and maps directly to one request per record plus a separate settlement summary payload for finance.`;
+
   function logSamplePayload() {
     if (!samplePayload) return;
     console.log("Tournament results payload", samplePayload);
@@ -41,6 +213,11 @@
   async function copyTournamentResultsPayload() {
     if (!tournamentResultsPayload.length || !navigator?.clipboard) return;
     await navigator.clipboard.writeText(JSON.stringify(tournamentResultsPayload, null, 2));
+  }
+
+  async function copyScoringPrompt() {
+    if (!navigator?.clipboard) return;
+    await navigator.clipboard.writeText(scoringPrompt);
   }
 
   function ordinal(position: number): string {
@@ -346,6 +523,21 @@
             <p class="text-sm text-muted-foreground">No standings yet. Seed or enter scores to generate payouts.</p>
           {/if}
         {/if}
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Scoring App Prompt</CardTitle>
+        <p class="text-sm text-muted-foreground">
+          Copy this prompt into the scoring app to generate tie-safe, playoff-aware, partial, and manual submission payloads.
+        </p>
+      </CardHeader>
+      <CardContent class="space-y-3">
+        <div class="flex items-center justify-between gap-3">
+          <Button variant="secondary" on:click={copyScoringPrompt}>Copy Prompt</Button>
+        </div>
+        <pre class="max-h-[360px] overflow-auto rounded-md border bg-muted/30 p-3 text-xs whitespace-pre-wrap">{scoringPrompt}</pre>
       </CardContent>
     </Card>
 
