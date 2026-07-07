@@ -9,6 +9,8 @@
     "pb:dev": "bash backend/pb.sh",
     "pb:migrate": "bash backend/pb-migrate.sh",
     "build": "pnpm -C frontend build",
-    "check": "pnpm -C frontend check"
+    "check": "pnpm -C frontend check",
+    "test": "pnpm -C shared test",
+    "test:watch": "pnpm -C shared test:watch"
   }
 }
