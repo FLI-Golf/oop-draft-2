@@ -1,11 +1,11 @@
-# Stage 1: Build PocketBase Go binary
-FROM golang:1.24-alpine AS go-builder
-
-WORKDIR /build
-COPY backend/pbapp/go.mod backend/pbapp/go.sum ./
-RUN go mod download
-COPY backend/pbapp/ ./
-RUN CGO_ENABLED=0 GOOS=linux go build -o /build/pocketbase .
+# Stage 1: Download stock PocketBase binary
+FROM alpine:3.20 AS pb-downloader
+ARG PB_VERSION=0.24.2
+RUN apk add --no-cache curl unzip \
+    && curl -fsSL -o /tmp/pb.zip \
+       "https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip" \
+    && unzip /tmp/pb.zip -d /tmp/pb \
+    && chmod +x /tmp/pb/pocketbase
 
 # Stage 2: Build SvelteKit frontend
 FROM node:18-alpine AS frontend-builder
@@ -37,7 +37,7 @@ FROM node:18-alpine
 RUN apk add --no-cache ca-certificates
 
 # PocketBase
-COPY --from=go-builder /build/pocketbase /pb/pocketbase
+COPY --from=pb-downloader /tmp/pb/pocketbase /pb/pocketbase
 COPY backend/pb_migrations/ /pb/pb_migrations/
 RUN mkdir -p /pb/pb_data /pb/pb_hooks
 
